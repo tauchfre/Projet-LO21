@@ -29,7 +29,6 @@ class Litteral
     public:
         virtual ostream& concat(ostream& f) const { throw ExceptionLitteral("Pas de concat pour ce littéral"); }
         virtual Litteral& copie() const = 0;
-
 };
 
 

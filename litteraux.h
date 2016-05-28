@@ -14,6 +14,7 @@ class Exception
         string erreur;
     public:
         Exception(const char* err) : erreur((string)err) {}
+        Exception(string err) : erreur(err) {}
         virtual  void afficher() { cout << erreur; }
 };
 class ExceptionLitteral : public Exception
@@ -29,8 +30,11 @@ class Litteral
     public:
         virtual ostream& concat(ostream& f) const { throw ExceptionLitteral("Pas de concat pour ce littéral"); }
         virtual Litteral& copie() const = 0;
-
 };
+class Litteral_calculable : public Litteral
+{
+};
+
 
 
 // GESTION DES REELS
@@ -104,7 +108,7 @@ class Forme_fraction : public Reel
         Reel& operator+(const Forme_decimale& terme) const {return terme+(*this);}
         Reel& operator-(const Forme_decimale& terme) const {return terme-(*this);}
         Reel& operator*(const Forme_decimale& terme) const {return terme*(*this);}
-        Reel& operator/(const Forme_decimale& terme) const {return terme/(*this);}
+        Reel& operat,or/(const Forme_decimale& terme) const {return terme/(*this);}
 
         Reel& operator+(const Forme_fraction& terme) const;
         Reel& operator-(const Forme_fraction& terme) const;
@@ -117,7 +121,7 @@ bool operator!=(const Forme_fraction &f1, const Forme_fraction &f2);
 
 // GESTION DES LITTERAUX NUMERIQUES
 
-class Litteral_numerique : public Litteral
+class Litteral_numerique : public Litteral_calculable
 {
     private:
         Reel& partie_reele;

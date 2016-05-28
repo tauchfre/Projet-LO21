@@ -23,8 +23,8 @@ class Pile
         void push(Litteral& L);
         int getTailleMax() const { return tailleMax; }
         int getTaille() const { return taille; }
+        void setTaille(int T) { taille = T; }
         Litteral& pop();
-        Litteral& top();
 };
 
 class PileManager
@@ -32,17 +32,19 @@ class PileManager
     private:
         Pile* pileActuelle;
 
+        int maxHistorique;
+
         Pile** historiqueUndo;
         int undoDisponible;
         Pile** historiqueRedo;
         int redoDisponible;
 
-        void addLitteral(Litteral& liter);
-
     public:
-        PileManager(): pileActuelle(0),historiqueUndo(0), historiqueRedo(0),redoDisponible(0),undoDisponible(0) {}
-        Litteral& pop();
-        void push(Litteral& L);
+        PileManager(int T=50): pileActuelle(0),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
+        Pile& getPileActuelle() const { return *pileActuelle; }
+        void setPileActuelle(Pile &P) { pileActuelle = &P; }
+        void pushHistorique(Pile& P, bool isUndo=true);
+        Pile& popHistorique(bool isUndo=true);
 };
 
 

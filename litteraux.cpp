@@ -112,7 +112,6 @@ ostream& operator<<(ostream& f, const Reel& reel)
 {
     return reel.concat(f);
 }
-
 /* Fonctions annexes */
 
 int PGCD(int a, int b)

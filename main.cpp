@@ -16,12 +16,14 @@ int main()
         Pile P;
         P.push(L2);
         P.push(L2);
+        P.push(L2);
+        P.push(L2);
         PileManager PM(3);
         PM.setPileActuelle(P);
         OperateurFactory OF;
-        Operateur &D = *( OF.creerOperateur("DUP") );
+        Operateur &ADD = *( OF.creerOperateur("+") );
         PM.getPileActuelle().afficher();
-        D.appliquer(PM);
+        ADD.appliquer(PM);
         cout << "-" << endl;
         PM.getPileActuelle().afficher();
     }

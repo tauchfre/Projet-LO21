@@ -2,6 +2,7 @@
 #define PILE_H_INCLUDED
 
 #include "litteraux.h"
+
 class ExceptionPile: public Exception
 {
     public:
@@ -12,38 +13,32 @@ class ExceptionPile: public Exception
 class Pile
 {
     private:
+
         Litteral** litteraux;
         int tailleMax;
         int taille;
     public:
-        Pile(int T = 50):litteraux(new Litteral*[T]),tailleMax(T),taille(0){}
+        Pile(int T=50):litteraux(new Litteral*[T]),tailleMax(T),taille(0){
+            for(unsigned int i=0; i<tailleMax; i++){
+                litteraux[i] = nullptr;
+            }
+        }
+
+
         Pile(const Pile& P);
         void afficher() const;
         void copierDans(Pile& P) const;
         void push(Litteral& L);
         int getTailleMax() const { return tailleMax; }
         int getTaille() const { return taille; }
+        void setTaille(int T) { taille = T; }
         Litteral& pop();
-        Litteral& top();
+        Litteral& top() { return *litteraux[taille-1]; }
+        void agrandissement();
+
+
 };
 
-class PileManager
-{
-    private:
-        Pile* pileActuelle;
-
-        Pile** historiqueUndo;
-        int undoDisponible;
-        Pile** historiqueRedo;
-        int redoDisponible;
-
-        void addLitteral(Litteral& liter);
-
-    public:
-        PileManager(): pileActuelle(0),historiqueUndo(0), historiqueRedo(0),redoDisponible(0),undoDisponible(0) {}
-        Litteral& pop();
-        void push(Litteral& L);
-};
 
 
 #endif // PILE_H_INCLUDED

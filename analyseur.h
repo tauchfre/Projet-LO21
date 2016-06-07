@@ -26,12 +26,9 @@ class ConteneurOperande // Sert à exprimer des expression / suite d'opérandes
 class Analyseur
 {
     public:
-        Litteral_numerique* evaluer(ConteneurOperande** exp, unsigned int taille);
-        Litteral_numerique* evaluer(string str);
+        Litteral* evaluer(ConteneurOperande** exp, unsigned int taille);
         Operateur* creerOperateur(string ID);
         virtual Operateur* operateurSupplementaire(string ID) { return 0; }
-
-        void effectuer(ConteneurOperande** exp, unsigned int nbOp, Computer &c);
 
         ConteneurOperande** interpreter(const string &commande);
         Forme_fraction *creerUneLitteraleRationelle(const string &s);
@@ -63,7 +60,7 @@ class Computer
         void setPileActuelle(Pile &P) { pileActuelle = &P; }
         void pushHistorique(Pile& P, bool isUndo=true);
         Pile& popHistorique(bool isUndo=true);
-        Analyseur& getAnalyseur() { return a; }
+
 
         void effectuer(string commande); // Computer& c);
         void effectuer(ConteneurOperande** exp, unsigned int nbOp);// Computer& c);

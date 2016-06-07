@@ -1,5 +1,4 @@
 #include "litteraux.h"
-#include "analyseur.h"
 #include <iostream>
 #include <stack>
 #include <sstream>
@@ -111,15 +110,7 @@ ostream& operator<<(ostream& f, const Reel& reel)
 }
 
 // METHODES LITTERALE EXPRESSIOn
-Litteral* Litteral_expression::eval(Computer &c) const
-{
-    string new_exp = toRPN(exp);
-    Litteral* Res = c.getAnalyseur().evaluer(new_exp);
-    if(Res != 0)
-        return  Res;
-    else
-        throw(ExceptionLitteral("Erreur dans l'évaluation de l'expression"));
-}
+
 Litteral_calculable& Litteral_calculable::operator/(const Litteral_calculable& L) const
 {
     if(getType() == expression || L.getType() == expression)
@@ -323,20 +314,6 @@ string toRPN(string exp) // Exp sans espace => expression en RPN; tout chaine in
     return output;
 
 }
-// FONCTIONS LITTERALES PROGRAMMES
-Litteral* Litteral_programme::eval(Computer &c) const
-{
-    try
-    {
-        c.effectuer(commande);
-        return 0;
-    }
-    catch(Exception e)
-    {
-        throw(ExceptionLitteral("Programme mal défini"));
-    }
-}
-
 
 /* Fonctions annexes */
 

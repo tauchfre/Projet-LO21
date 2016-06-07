@@ -3,6 +3,7 @@
 
 
 // METHODES DE LA CLASSE PILE
+
 void Pile::afficher() const
 {
     if(taille > 0)
@@ -10,11 +11,29 @@ void Pile::afficher() const
         cout << "Pile :" << endl;
         for(int i = taille-1; i>=0; i--) // On affiche à l'envers !
         {
-            cout << "> ("<<i<<") " << *litteraux[i];
+            cout << ">" << *litteraux[i];
             cout << endl;
         }
     }
 }
+/*
+void Pile::afficher()const{
+	system("cls");
+	cout<<"********************************************* \n";
+	//cout<<"M : "<<message<<"\n";
+	cout <<"\n";
+	cout<<"            Entrez votre commande" <<"\n \n";
+	cout<<"---------------------------------------------\n";
+	if(taille >0){
+	for(int i = taille-1; i>=0; i--) {
+
+    cout << *litteraux[i]<<"\n";
+	}
+	}
+	cout<<"---------------------------------------------\n";
+}
+*/
+
 void Pile::push(Litteral& L)
 {
     if(taille < tailleMax)

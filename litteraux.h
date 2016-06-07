@@ -98,11 +98,10 @@ class Forme_fraction : public Reel
 bool operator==(const Forme_fraction &f1, const Forme_fraction &f2);
 bool operator!=(const Forme_fraction &f1, const Forme_fraction &f2);
 
-class Computer;
+
 class Litteral
 {
     public:
-        virtual Litteral* eval(Computer& c) const = 0;
         virtual ostream& concat(ostream& f) const { throw ExceptionLitteral("Pas de concat pour ce littéral"); }
         virtual Litteral& copie() const = 0;
         virtual string toStr() const = 0;
@@ -114,14 +113,12 @@ class Litteral_calculable : public Litteral
     protected:
         TypeLCalculable type;
     public:
-        virtual Litteral* eval(Computer& c) const = 0;
         Litteral_calculable(TypeLCalculable T):type(T) {}
         virtual Litteral_calculable& operator+(const Litteral_calculable& L) const;
         virtual Litteral_calculable& operator-(const Litteral_calculable& L) const;
         virtual Litteral_calculable& operator*(const Litteral_calculable& L) const;
         virtual Litteral_calculable& operator/(const Litteral_calculable& L) const;
         virtual TypeLCalculable getType() const {return type;};
-        virtual string toStr() const = 0;
 };
 
 // GESTION DES LITTERAUX NUMERIQUES
@@ -134,11 +131,8 @@ class Litteral_expression : public Litteral_calculable
         Litteral_expression(string str) : exp(str), Litteral_calculable(expression) {  }
         virtual bool isExpression() const { return true; }
         Litteral& copie() const;
-        ostream& concat(ostream& f) const { return (f << "'" << exp << "'");}
-//        string toStr() const { return exp; }
-        string toStr() const { ostringstream stream; stream << exp; return stream.str(); }
-
-        Litteral* eval(Computer& c) const;
+        ostream& concat(ostream& f) const { return (f << exp);}
+        string toStr() const { return exp; }
 };
 class Litteral_numerique : public Litteral_calculable
 {
@@ -155,7 +149,6 @@ class Litteral_numerique : public Litteral_calculable
         Reel& getIm() const{return partie_imaginaire;}
         ostream& concat(ostream& f) const;
 
-        Litteral* eval(Computer& c) const  { return &this->copie(); };
         virtual bool isExpression() const { return false; }
         string toStr() const { ostringstream stream; partie_reele.concat(stream); if(partie_imaginaire != Forme_decimale(0)) { stream << "$"; partie_imaginaire.concat(stream); } return stream.str(); }
         Litteral& copie() const{ return * (new Litteral_numerique(*this));}
@@ -164,15 +157,7 @@ class Litteral_numerique : public Litteral_calculable
 // GESTION DES LITTERAUX EXPRESSION
 
 string toRPN(string exp);
-class Litteral_programme : public Litteral
-{
-    private:
-        string commande;
-    public:
-        Litteral_programme(string com) : commande(com) {}
-        Litteral_programme(const char* com) : commande((string)com) {}
-        Litteral* eval(Computer &c) const;
-};
+
 class Litteral_atome : public Litteral
 {
     private:

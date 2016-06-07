@@ -1,7 +1,4 @@
-
-
 #include "analyseur.h"
-#include "operateurs_instances.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -61,10 +58,20 @@ void Computer::push(Litteral& L)
      newP->push(L);
      pileActuelle = newP;
 }
-void Computer::effectuer(ConteneurOperande** exp, unsigned int nbOp)
-{
-    a.effectuer(exp,nbOp,*this);
+void Computer::effectuer(ConteneurOperande** exp, unsigned int nbOp) {
+    for(unsigned int i = 0; i < nbOp; i++)
+    {
+        if(exp[i]->isLitteral())
+        {
+            push(*exp[i]->getLitteral());
+        }
+        else
+        {
+            exp[i]->getOperateur()->appliquer(*this);
+        }
+    }
 }
+
 void Computer::effectuer(string str)
 {
     ConteneurOperande** commande = a.interpreter(str);
@@ -73,59 +80,7 @@ void Computer::effectuer(string str)
     effectuer(commande, i);
 }
 
-// Analyseur
-Litteral_numerique* Analyseur::evaluer(string str)
-{
-    ConteneurOperande** commande = interpreter(str);
-    unsigned int i;
-    for(i = 0; commande != 0 && commande[i] != 0; i++ );
-    return evaluer(commande, i);
-}
-void Analyseur::effectuer(ConteneurOperande** exp, unsigned int nbOp, Computer &c) {
-    for(unsigned int i = 0; i < nbOp; i++)
-    {
-        if(exp[i]->isLitteral())
-        {
-            c.push(*exp[i]->getLitteral());
-        }
-        else
-        {
-            exp[i]->getOperateur()->appliquer(c);
-        }
-    }
-}
-Operateur* Analyseur::creerOperateur(string ID) {
-    if(ID == "DUP")
-    {
-        return (new Dupliquer);
-    }
-    else if(ID == "+")
-    {
-        return (new Additionner);
-    }
-    else if(ID == "-")
-    {
-        return (new Soustraire);
-    }
-    else if(ID == "*")
-    {
-        return (new Multiplier);
-    }
-    else if(ID == "+")
-    {
-        return (new Diviser);
-    }
-    else if(ID == "EVAL")
-    {
-        return (new Eval(this));
-    }
-    else
-    {
-        return operateurSupplementaire(ID);
-    }
-}
-Litteral_numerique* Analyseur::evaluer(ConteneurOperande** exp, unsigned int taille)
-{
+Litteral* Analyseur::evaluer(ConteneurOperande** exp, unsigned int taille) {
     Pile P;
     for(unsigned int i=0; i < taille; i++)
     {
@@ -141,15 +96,94 @@ Litteral_numerique* Analyseur::evaluer(ConteneurOperande** exp, unsigned int tai
     if(P.getTaille() != 1)
         return 0;
     else
+        return &P.pop();
+}
+
+// Analyseur
+Operateur* Analyseur::creerOperateur(string ID) {
+    if(ID == "DUP")
     {
-        try
-        {
-            return dynamic_cast<Litteral_numerique*>(&(P.pop()));
-        }
-        catch(bad_cast e)
-        {
-            throw(ExceptionOperateur("EVAL n'évalue que les calculables"));
-        }
+        return (new Dupliquer);
+    }
+    else if(ID == "DROP")
+    {
+        return (new Drop);
+    }
+    else if(ID == "SWAP")
+    {
+        return (new Swap);
+    }
+    else if(ID == "CLEAR")
+    {
+        return (new Clear);
+    }
+    else if(ID == "+")
+    {
+        return (new Additionner);
+    }
+    else if(ID == "-")
+    {
+        return (new Soustraire);
+    }
+    else if(ID == "*")
+    {
+        return (new Multiplier);
+    }
+    else if(ID == "/")
+    {
+        return (new Diviser);
+    }
+    else if(ID == "NEG")
+    {
+        return (new Neg);
+    }
+    else if(ID == "MOD")
+    {
+        return (new Mod);
+    }
+    else if(ID == "DIV")
+    {
+        return (new Div);
+    }
+    else if(ID == "UNDO")
+    {
+        return (new Undo);
+    }
+    else if(ID == "REDO")
+    {
+        return (new Redo);
+    }
+    else if(ID == "NUM")
+    {
+        return (new Num);
+    }
+    else if(ID == "DEN")
+    {
+        return (new Den);
+    }
+    else if(ID == "$")
+    {
+        return (new creerComplexe);
+    }
+    else if(ID == "RE")
+    {
+        return (new Re);
+    }
+    else if(ID == "IM")
+    {
+        return (new Im);
+    }
+    else if(ID == "LASTOP")
+    {
+        return (new Lastop);
+    }
+    else if(ID == "LASTARGS")
+    {
+        return (new Lastargs);
+    }
+    else
+    {
+        return operateurSupplementaire(ID);
     }
 }
 
@@ -546,10 +580,15 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
             }
             //Si c'est une Expression
             else if(quote != -1 && crochet == -1){
-                tab[numOp].erase(0,1);
-                tab[numOp].erase(tab[numOp].size() - 1);
+
                 Litteral_expression *exp = new Litteral_expression(tab[numOp]);
                 ConteneurOperande *cL = new ConteneurOperande(*exp);
+                newtab[numOp] = cL;
+            }
+            else if(quote == -1 && crochet != -1){
+
+                Litteral_programme *prog = new Litteral_programme(tab[numOp]);
+                ConteneurOperande *cL = new ConteneurOperande(*prog);
                 newtab[numOp] = cL;
             }
 
@@ -559,6 +598,7 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
         }
     }
        // unsigned int nbOperande = occtab;
-        newtab[occtab] = 0;
+        newtab[occtab] = nullptr;
         return newtab;
     }
+

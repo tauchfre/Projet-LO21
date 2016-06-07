@@ -39,8 +39,6 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="operateurs.cpp" />
 		<Unit filename="operateurs.h" />
-		<Unit filename="operateurs_instances.cpp" />
-		<Unit filename="operateurs_instances.h" />
 		<Unit filename="pile.cpp" />
 		<Unit filename="pile.h" />
 		<Extensions>

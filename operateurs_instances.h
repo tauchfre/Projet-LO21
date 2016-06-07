@@ -145,16 +145,17 @@ class Num : public OperateurNumerique
             Litteral_calculable *L = L_Tab[0];
             s = L->toStr();
             int place;
+            int dollar;
+            dollar = s.find_first_of('$');
             place = s.find_first_of('/');
             Forme_fraction* f = nullptr;
-            if(place != -1){
+            if(place != -1&& dollar == -1){
             f = a->creerUneLitteraleRationelle(s);
             }
-            else f = a->creerUneLitteraleEntiere(s);
+            else if(place == -1 && dollar == -1)f = a->creerUneLitteraleEntiere(s);
 
             if(f != nullptr )
             {
-                cout <<"ici \n";
                 int num = f->getNumerateur();
                 Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(num)), *(new Forme_fraction(0))));
                 return Res;
@@ -179,12 +180,14 @@ class Den : public OperateurNumerique
             Litteral_calculable *L = L_Tab[0];
             s = L->toStr();
             int place;
+            int dollar;
             place = s.find_first_of('/');
+            dollar = s.find_first_of('$');
             Forme_fraction* f = nullptr;
-            if(place != -1){
+            if(place != -1 && dollar ==-1){
             f = a->creerUneLitteraleRationelle(s);
             }
-            else f = a->creerUneLitteraleEntiere("1");
+            else if (place == -1 && dollar ==-1) f = a->creerUneLitteraleEntiere("1");
 
             if(f != nullptr )
             {
@@ -196,6 +199,208 @@ class Den : public OperateurNumerique
             {
                 throw ErrOperateur('Litterale reele ou complexe');
             }
+
+        }
+};
+
+
+class Re : public OperateurNumerique
+{
+
+    public:
+        Re() : OperateurNumerique(1) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+
+            string s;
+            Litteral_calculable *L = L_Tab[0];
+            s = L->toStr();
+            int dollar;
+            int point;
+            int slash;
+            dollar = s.find_first_of('$');
+
+
+            if(dollar != -1)
+            {
+                string *tab = new string[2];
+                tab = a->getReEtIm(s);
+                point = tab[0].find_first_of("\.");
+                slash = tab[0].find_first_of("\/");
+                if(point == -1&&slash == -1)
+                {
+                    Forme_fraction* ln = nullptr;
+                    ln = a->creerUneLitteraleEntiere(tab[0]);
+                    if(ln != nullptr )
+                    {
+                        Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
+                        return Res;
+                    }
+                    else
+                    {
+                        throw ErrOperateur('Erreur');
+                    }
+                }
+                else if(point == -1&&slash != -1)
+                {
+                    Forme_fraction* ln = nullptr;
+                    ln = a->creerUneLitteraleRationelle(tab[0]);
+                    if(ln != nullptr )
+                    {
+                        Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
+                        return Res;
+                    }
+                    else
+                    {
+                        throw ErrOperateur('Erreur');
+                    }
+                }
+                else
+                {
+                    Forme_decimale* ln = nullptr;
+                    ln = a->creerUneLitteraleReel(tab[0]);
+                    if(ln != nullptr )
+                    {
+                        Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
+                        return Res;
+                    }
+                    else
+                    {
+                        throw ErrOperateur('Erreur');
+                    }
+                }
+
+            }
+            else
+            {
+
+                        Litteral_calculable &Res = *L;
+                        return Res;
+
+            }
+
+
+        }
+};
+
+class Im : public OperateurNumerique
+{
+
+    public:
+        Im() : OperateurNumerique(1) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+
+            string s;
+            Litteral_calculable *L = L_Tab[0];
+            s = L->toStr();
+            int dollar;
+            int point;
+            int slash;
+            dollar = s.find_first_of('$');
+
+
+            if(dollar != -1)
+            {
+                string *tab = new string[2];
+                tab = a->getReEtIm(s);
+                point = tab[1].find_first_of("\.");
+                slash = tab[1].find_first_of("\/");
+
+                if(point == -1 && slash == -1)
+                {
+                    Forme_fraction* ln = nullptr;
+                    ln = a->creerUneLitteraleEntiere(tab[1]);
+
+                    if(ln != nullptr )
+                    {
+
+                        Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
+
+                        return Res;
+
+                    }
+                    else
+                    {
+                        throw ErrOperateur('Erreur');
+                    }
+                }
+                if(point == -1 && slash != -1)
+                {
+                    Forme_fraction* ln = nullptr;
+                    ln = a->creerUneLitteraleRationelle(tab[1]);
+
+                    if(ln != nullptr )
+                    {
+
+                        Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
+
+                        return Res;
+
+                    }
+                    else
+                    {
+                        throw ErrOperateur('Erreur');
+                    }
+                }
+                else
+                {
+                    Forme_decimale* ln = nullptr;
+                    ln = a->creerUneLitteraleReel(tab[1]);
+                    if(ln != nullptr )
+                    {
+                        Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
+                        return Res;
+                    }
+                    else
+                    {
+                        throw ErrOperateur('Erreur');
+                    }
+                }
+
+            }
+            else
+            {
+
+                        Litteral_calculable &Res = *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                        return Res;
+
+            }
+
+
+        }
+};
+
+class creerComplexe : public OperateurNumerique
+{
+
+    public:
+        creerComplexe() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+
+
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+
+            int dollar1;
+            int dollar2;
+            dollar1 = L1->toStr().find_first_of('$');
+            dollar2 = L2->toStr().find_first_of('$');
+            if(dollar1 == -1 && dollar2 == -1){
+            string complexe = L2->toStr()+"$"+L1->toStr();
+            Litteral_numerique *Ln = nullptr;
+            Ln = a->creerUneLitteraleComplexe(complexe);
+
+            if(Ln != nullptr){
+                Litteral_calculable &Res = *(new Litteral_numerique(*Ln));
+                return Res;
+            }
+            else
+                throw ErrOperateur('Syntaxe invalide');
+            }
+            else
+                throw ErrOperateur('Ne peut etre transforme en complexe');
 
         }
 };

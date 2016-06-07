@@ -155,10 +155,6 @@ Operateur* Analyseur::creerOperateur(string ID) {
     {
         return (new Den);
     }
-  /*  else if(ID == "$")
-    {
-        return (new creerComplexe);
-    }
     else if(ID == "RE")
     {
         return (new Re);
@@ -167,6 +163,12 @@ Operateur* Analyseur::creerOperateur(string ID) {
     {
         return (new Im);
     }
+   else if(ID == "$")
+    {
+        return (new creerComplexe);
+    }
+
+/*
     else if(ID == "LASTOP")
     {
         return (new Lastop);

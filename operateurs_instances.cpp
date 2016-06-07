@@ -14,12 +14,22 @@ Pile& Dupliquer::operation(const Pile& P)
 Pile& Drop::operation(const Pile& P)
 {
     Pile &Res = * (new Pile(P));
-
     Litteral &L = Res.pop();
     return Res;
 }
 
 Pile& Swap::operation(const Pile& P)
+{
+    Pile &Res = * (new Pile(P));
+
+    Litteral &L1 = Res.pop();
+    Litteral &L2 = Res.pop();
+    Res.push(L1);
+    Res.push(L2);
+    return Res;
+}
+
+Pile& Undo::operation(const Pile& P)
 {
     Pile &Res = * (new Pile(P));
 
@@ -51,13 +61,6 @@ Pile& Lastop::operation(const Pile& P)
 }
 
 Pile& Lastargs::operation(const Pile& P)
-{
-    Pile &Res = *(new Pile(P));
-
-    return Res;
-}
-
-Pile& Undo::operation(const Pile& P)
 {
     Pile &Res = *(new Pile(P));
 

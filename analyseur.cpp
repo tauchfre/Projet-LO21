@@ -22,6 +22,7 @@ void Computer::pushHistorique(Pile& P, bool isUndo)
     {
         historiqueRedo[redoDisponible] = &P;
         redoDisponible++;
+
     }
     else
     {
@@ -38,7 +39,7 @@ Pile& Computer::popHistorique(bool isUndo)
     else if(!isUndo && redoDisponible > 0)
     {
         redoDisponible--;
-        return * (historiqueUndo[redoDisponible]);
+        return * (historiqueRedo[redoDisponible]);
     }
     else
     {
@@ -204,11 +205,11 @@ Operateur* Analyseur::creerOperateur(string ID) {
         return (new Superieur);
     }
 
-/*
+
     else if(ID == "LASTOP")
     {
         return (new Lastop);
-    }
+    }/*
     else if(ID == "LASTARGS")
     {
         return (new Lastargs);
@@ -236,6 +237,7 @@ Litteral_numerique* Analyseur::evaluer(ConteneurOperande** exp, unsigned int tai
         else
         {
             P = exp[i]->getOperateur()->operation(P);
+
         }
     }
     if(P.getTaille() != 1)

@@ -430,7 +430,8 @@ class Clear : public Operateur
 class Lastop : public Operateur
 {
     public:
-        Pile& operation(const Pile& P);
+        Pile& operation(const Pile& P){}
+        void appliquer(Computer &c);
 };
 
 class Lastargs : public Operateur
@@ -442,13 +443,15 @@ class Lastargs : public Operateur
 class Undo : public Operateur
 {
     public:
-        Pile& operation(const Pile& P);
+        Pile& operation(const Pile& P){}
+        void appliquer(Computer& c);
 };
 
 class Redo : public Operateur
 {
     public:
-        Pile& operation(const Pile& P);
+        Pile& operation(const Pile& P){}
+        void appliquer(Computer& c);
 };
 
 class And : public OperateurNumerique

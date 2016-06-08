@@ -46,6 +46,7 @@ class Analyseur
 class Computer
 {
     private:
+        string lastop;
         Pile* pileActuelle;
         int maxHistorique;
         Analyseur a;
@@ -55,13 +56,15 @@ class Computer
         int redoDisponible;
 
     public:
-        Computer(int T=50): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
+        Computer(int T=50): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0), lastop("") {}
         Pile& getPileActuelle() const { return *pileActuelle; }
         Litteral& pop();
         void push(Litteral& L);
         void afficherPile() { if(pileActuelle != 0) pileActuelle->afficher();};
         void setPileActuelle(Pile &P) { pileActuelle = &P; }
         void pushHistorique(Pile& P, bool isUndo=true);
+        string getLastop() const {return lastop;}
+        void setLastop(string Last){lastop = Last;}
         Pile& popHistorique(bool isUndo=true);
         Analyseur& getAnalyseur() { return a; }
 

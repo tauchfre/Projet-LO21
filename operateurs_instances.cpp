@@ -29,16 +29,27 @@ Pile& Swap::operation(const Pile& P)
     return Res;
 }
 
-Pile& Undo::operation(const Pile& P)
-{
-    Pile &Res = * (new Pile(P));
 
-    Litteral &L1 = Res.pop();
-    Litteral &L2 = Res.pop();
-    Res.push(L1);
-    Res.push(L2);
-    return Res;
+void Undo::appliquer(Computer& c)
+{
+
+    Pile& PileRedo = c.getPileActuelle();
+    c.pushHistorique(PileRedo, false);
+    Pile& pileUndo = c.popHistorique(true);
+    c.setPileActuelle(pileUndo);
+
 }
+
+void Redo::appliquer(Computer& c)
+{
+
+    Pile& PileUndo = c.getPileActuelle();
+    c.pushHistorique(PileUndo, true);
+    Pile& pileRedo = c.popHistorique(false);
+    c.setPileActuelle(pileRedo);
+
+}
+
 
 Pile& Clear::operation(const Pile& P)
 {
@@ -53,11 +64,10 @@ Pile& Clear::operation(const Pile& P)
     return Res;
 }
 
-Pile& Lastop::operation(const Pile& P)
+void Lastop::appliquer(Computer &c)
 {
-    Pile &Res = *(new Pile(P));
-
-    return Res;
+    string last = c.getLastop();
+    c.effectuer(last);
 }
 
 Pile& Lastargs::operation(const Pile& P)
@@ -67,12 +77,7 @@ Pile& Lastargs::operation(const Pile& P)
     return Res;
 }
 
-Pile& Redo::operation(const Pile& P)
-{
-    Pile &Res = *(new Pile(P));
 
-    return Res;
-}
 /*Pile& OperateurNumerique::operation(const Pile &P)
 {
     Pile &Res = * (new Pile(P));

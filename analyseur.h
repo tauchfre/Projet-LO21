@@ -1,31 +1,22 @@
 #ifndef ANALYSEUR_H_INCLUDED
 #define ANALYSEUR_H_INCLUDED
 
+#include "atomes.h"
 #include "litteraux.h"
 #include "pile.h"
 #include "operateurs.h"
 #include <iostream>
 #include <string>
-
+#include "atomes.h"
 using namespace std;
 
-class ConteneurOperande // Sert à exprimer des expression / suite d'opérandes
-{
-    private:
-        Operateur* o;
-        Litteral* l;
-        bool trueIfLitteral;
-    public:
-        ConteneurOperande(Litteral& L) : o(0), l(&L), trueIfLitteral(true) {}
-        ConteneurOperande(Operateur& O) : o(&O), l(0), trueIfLitteral(false) {}
-        bool isLitteral() { return trueIfLitteral; }
-        Operateur* getOperateur() { return o; }
-        Litteral* getLitteral() { return l; }
-};
 
 class Analyseur
 {
+    ListeAtomes& atomes;
     public:
+        Analyseur() : atomes(* new ListeAtomes) {}
+        ListeAtomes& getAtomes() { return atomes; }
         Litteral_numerique* evaluer(ConteneurOperande** exp, unsigned int taille);
         Litteral_numerique* evaluer(string str);
         Operateur* creerOperateur(string ID);
@@ -46,7 +37,6 @@ class Analyseur
 class Computer
 {
     private:
-        string lastop;
         Pile* pileActuelle;
         int maxHistorique;
         Analyseur a;
@@ -56,15 +46,13 @@ class Computer
         int redoDisponible;
 
     public:
-        Computer(int T=50): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0), lastop("") {}
+        Computer(int T=50): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
         Pile& getPileActuelle() const { return *pileActuelle; }
         Litteral& pop();
         void push(Litteral& L);
         void afficherPile() { if(pileActuelle != 0) pileActuelle->afficher();};
         void setPileActuelle(Pile &P) { pileActuelle = &P; }
         void pushHistorique(Pile& P, bool isUndo=true);
-        string getLastop() const {return lastop;}
-        void setLastop(string Last){lastop = Last;}
         Pile& popHistorique(bool isUndo=true);
         Analyseur& getAnalyseur() { return a; }
 

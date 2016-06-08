@@ -1,5 +1,5 @@
 #include "operateurs_instances.h"
-
+#include <sstream>
 // OPERATIONS DES OPERATEURS
 Pile& Dupliquer::operation(const Pile& P)
 {
@@ -29,27 +29,16 @@ Pile& Swap::operation(const Pile& P)
     return Res;
 }
 
-
-void Undo::appliquer(Computer& c)
+Pile& Undo::operation(const Pile& P)
 {
+    Pile &Res = * (new Pile(P));
 
-    Pile& PileRedo = c.getPileActuelle();
-    c.pushHistorique(PileRedo, false);
-    Pile& pileUndo = c.popHistorique(true);
-    c.setPileActuelle(pileUndo);
-
+    Litteral &L1 = Res.pop();
+    Litteral &L2 = Res.pop();
+    Res.push(L1);
+    Res.push(L2);
+    return Res;
 }
-
-void Redo::appliquer(Computer& c)
-{
-
-    Pile& PileUndo = c.getPileActuelle();
-    c.pushHistorique(PileUndo, true);
-    Pile& pileRedo = c.popHistorique(false);
-    c.setPileActuelle(pileRedo);
-
-}
-
 
 Pile& Clear::operation(const Pile& P)
 {
@@ -64,10 +53,11 @@ Pile& Clear::operation(const Pile& P)
     return Res;
 }
 
-void Lastop::appliquer(Computer &c)
+Pile& Lastop::operation(const Pile& P)
 {
-    string last = c.getLastop();
-    c.effectuer(last);
+    Pile &Res = *(new Pile(P));
+
+    return Res;
 }
 
 Pile& Lastargs::operation(const Pile& P)
@@ -77,7 +67,12 @@ Pile& Lastargs::operation(const Pile& P)
     return Res;
 }
 
+Pile& Redo::operation(const Pile& P)
+{
+    Pile &Res = *(new Pile(P));
 
+    return Res;
+}
 /*Pile& OperateurNumerique::operation(const Pile &P)
 {
     Pile &Res = * (new Pile(P));
@@ -104,4 +99,18 @@ void Eval::appliquer(Computer& c)
     Litteral* Res = L_a_evaluer.eval(c);
     if(Res != 0)
         c.push(*Res);
+}
+Pile& Sto::operation(const Pile &P)
+{
+    Pile &Res = * (new Pile(P));
+        Litteral &L1 = (Res.pop()) ;
+        Litteral &L2 = ( (Res.pop()) );
+        ostringstream os;
+        os << L1;
+        cout << L1.toStr();
+        if(os.str()[0] == '[')
+            getAnalyseur()->getAtomes().ajouterAtome(os.str(),L2);
+        else
+            getAnalyseur()->getAtomes().ajouterAtome(L1.toStr(),L2);
+        return Res;
 }

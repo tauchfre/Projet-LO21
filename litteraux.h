@@ -172,8 +172,9 @@ class Litteral_programme : public Litteral
         Litteral_programme(string com) : commande(com) {}
         Litteral_programme(const char* com) : commande((string)com) {}
         Litteral* eval(Computer &c) const;
-        string toStr() const { }
-        Litteral& copie() const{ }
+        ostream& concat(ostream &f) const { return f << "[" << commande << "]"; }
+        string toStr() const {  return commande; }
+        Litteral& copie() const{ return *(new Litteral_programme(*this)); }
 };
 class Litteral_atome : public Litteral
 {

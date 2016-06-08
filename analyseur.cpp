@@ -22,7 +22,6 @@ void Computer::pushHistorique(Pile& P, bool isUndo)
     {
         historiqueRedo[redoDisponible] = &P;
         redoDisponible++;
-
     }
     else
     {
@@ -39,7 +38,7 @@ Pile& Computer::popHistorique(bool isUndo)
     else if(!isUndo && redoDisponible > 0)
     {
         redoDisponible--;
-        return * (historiqueRedo[redoDisponible]);
+        return * (historiqueUndo[redoDisponible]);
     }
     else
     {
@@ -205,11 +204,11 @@ Operateur* Analyseur::creerOperateur(string ID) {
         return (new Superieur);
     }
 
-
+/*
     else if(ID == "LASTOP")
     {
         return (new Lastop);
-    }/*
+    }
     else if(ID == "LASTARGS")
     {
         return (new Lastargs);
@@ -218,7 +217,10 @@ Operateur* Analyseur::creerOperateur(string ID) {
     {
         return (new Eval);
     }
-
+    else if(ID == "STO")
+    {
+        return (new Sto(this));
+    }
     else
     {
         return operateurSupplementaire(ID);
@@ -237,7 +239,6 @@ Litteral_numerique* Analyseur::evaluer(ConteneurOperande** exp, unsigned int tai
         else
         {
             P = exp[i]->getOperateur()->operation(P);
-
         }
     }
     if(P.getTaille() != 1)
@@ -566,7 +567,6 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
         {
             while (commande[k]!=cEsp&&k< commande.size())
             {
-
                 tab[occtab] = tab[occtab] + commande[k];
                 k++;
             }
@@ -591,6 +591,7 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
     int dollar;
     int quote;
     int crochet;
+    int alphabet;
     for(numOp=0; numOp < occtab; numOp++ ){
 
 
@@ -599,7 +600,11 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
         dollar = tab[numOp].find_first_of("\$");
         quote = tab[numOp].find_first_of("\'");
         crochet = tab[numOp].find_first_of("\[");
-
+        alphabet = 26 + 25;
+        for(char i='A'; i <= 'Z'; i++)
+            alphabet += tab[numOp].find_first_of(i);
+        for(char i='a'; i <= 'z'; i++)
+            alphabet += tab[numOp].find_first_of(i);
         Operateur* Op = creerOperateur(tab[numOp]);
         if(Op)
         {
@@ -609,8 +614,9 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
         }
         else
         {
+            cout << tab[numOp];
             //Si c'est un entier
-            if(slash ==-1&&point==-1&&dollar==-1&&quote==-1&&crochet==-1)
+            if(alphabet<0&&slash ==-1&&point==-1&&dollar==-1&&quote==-1&&crochet==-1)
             {
                 Forme_fraction *frac1 = creerUneLitteraleEntiere(tab[numOp]);
                 Forme_fraction *frac2 = creerUneLitteraleEntiere("0");
@@ -654,19 +660,43 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
                 ConteneurOperande *cL = new ConteneurOperande(*exp);
                 newtab[numOp] = cL;
             }
+            // SI c'est un programme
             else if(quote == -1 && crochet != -1){
 
+                tab[numOp].erase(0,1);
+                tab[numOp].erase(tab[numOp].size() - 2);
+                cout << tab[numOp];
                 Litteral_programme *prog = new Litteral_programme(tab[numOp]);
                 ConteneurOperande *cL = new ConteneurOperande(*prog);
                 newtab[numOp] = cL;
             }
-
             else
-                throw ExceptionLitteral("Syntaxe invalide");
+            {
+                TypeAtome existenceAtome = getAtomes().atomeExiste(tab[numOp]);
+                if(existenceAtome == NIL)
+                {
+                    Litteral_expression *exp = new Litteral_expression(tab[numOp]);
+                    ConteneurOperande *cL = new ConteneurOperande(*exp);
+                    newtab[numOp] = cL;
+                }
+                else if(existenceAtome == prog)
+                {
+                    ConteneurOperande** ops = atomes.interpreter(tab[numOp]);
+                    newtab[numOp] = ops[0];
+//                    numOp++;
+  //                  newtab[numOp] = ops[1];
+                }
+                else
+                {
+                    ConteneurOperande** ops = atomes.interpreter(tab[numOp]);
+                    newtab[numOp] = ops[0];
+                }
+            }
+//      throw ExceptionLitteral("Syntaxe invalide");
 
         }
     }
        // unsigned int nbOperande = occtab;
-        newtab[occtab] = nullptr;
+        newtab[occtab] = 0;
         return newtab;
     }

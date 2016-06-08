@@ -113,6 +113,7 @@ ostream& operator<<(ostream& f, const Reel& reel)
 // METHODES LITTERALE EXPRESSIOn
 Litteral* Litteral_expression::eval(Computer &c) const
 {
+    cout << "eval";
     string new_exp = toRPN(exp);
     Litteral* Res = c.getAnalyseur().evaluer(new_exp);
     if(Res != 0)

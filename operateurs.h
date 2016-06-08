@@ -39,5 +39,18 @@ class OperateurNumerique : public  Operateur
 
 
 
+class ConteneurOperande // Sert à exprimer des expression / suite d'opérandes
+{
+    private:
+        Operateur* o;
+        Litteral* l;
+        bool trueIfLitteral;
+    public:
+        ConteneurOperande(Litteral& L) : o(0), l(&L), trueIfLitteral(true) {}
+        ConteneurOperande(Operateur& O) : o(&O), l(0), trueIfLitteral(false) {}
+        bool isLitteral()  const{ return trueIfLitteral; }
+        Operateur* getOperateur() const { return o; }
+        Litteral* getLitteral() const { return l; }
+};
 
 #endif // OPERATEURS_H_INCLUDED

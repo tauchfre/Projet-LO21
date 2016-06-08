@@ -4,12 +4,18 @@
 #include "operateurs.h"
 #include "analyseur.h"
 #include "operateurs_instances.h"
+#include "atomes.h"
 
 using namespace std;
-
+void boucle();
 int main()
 {
-    try
+    boucle();
+    return 0;
+}
+void boucle()
+{
+     try
     {
         Computer c;
         Additionner add;
@@ -45,16 +51,22 @@ int main()
         getline(cin, commande_user);
         while(commande_user != "exit")
         {
+            try {
             c.effectuer(commande_user); // EVAL");
             cout << endl << endl;
             c.afficherPile();
             cout << endl << endl << "---------------------------------" << endl << endl;
             getline(cin, commande_user);
+            }
+            catch(Exception e)
+            {
+                e.afficher();
+                commande_user = "";
+            }
         }
     }
     catch(Exception e)
     {
-        e.afficher();
+            e.afficher();
     }
-    return 0;
 }

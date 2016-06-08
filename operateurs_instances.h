@@ -71,11 +71,11 @@ class Div : public OperateurNumerique
             Litteral_calculable *L2 = L_Tab[1];
             string str1 = L1->toStr();
             string str2 = L2->toStr();
-            Forme_fraction *f1 = nullptr;
+            Forme_fraction *f1 = 0;
             f1 = a->creerUneLitteraleEntiere(str1);
-            Forme_fraction *f2 = nullptr;
+            Forme_fraction *f2 = 0;
             f2 = a->creerUneLitteraleEntiere(str2);
-            if(f1 != nullptr && f2 != nullptr)
+            if(f1 != 0 && f2 != 0)
             {
                 int i1 = f1->getNumerateur();
                 int i2 = f2->getNumerateur();
@@ -84,7 +84,7 @@ class Div : public OperateurNumerique
                 return Res;
             }
             else
-                throw ErrOperateur();
+                throw ExceptionOperateur("");
         }
 };
 
@@ -101,11 +101,11 @@ class Mod : public OperateurNumerique
             Litteral_calculable *L2 = L_Tab[1];
             string str1 = L1->toStr();
             string str2 = L2->toStr();
-            Forme_fraction *f1 = nullptr;
+            Forme_fraction *f1 = 0;
             f1 = a->creerUneLitteraleEntiere(str1);
-            Forme_fraction *f2 = nullptr;
+            Forme_fraction *f2 = 0;
             f2 = a->creerUneLitteraleEntiere(str2);
-            if(f1 != nullptr && f2 != nullptr)
+            if(f1 != 0 && f2 != 0)
             {
                 int i1 = f1->getNumerateur();
                 int i2 = f2->getNumerateur();
@@ -114,7 +114,7 @@ class Mod : public OperateurNumerique
                 return Res;
             }
             else
-                throw ErrOperateur();
+                throw ExceptionOperateur("");
         }
 };
 
@@ -148,13 +148,13 @@ class Num : public OperateurNumerique
             int dollar;
             dollar = s.find_first_of('$');
             place = s.find_first_of('/');
-            Forme_fraction* f = nullptr;
+            Forme_fraction* f = 0;
             if(place != -1&& dollar == -1){
             f = a->creerUneLitteraleRationelle(s);
             }
             else if(place == -1 && dollar == -1)f = a->creerUneLitteraleEntiere(s);
 
-            if(f != nullptr )
+            if(f != 0 )
             {
                 int num = f->getNumerateur();
                 Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(num)), *(new Forme_fraction(0))));
@@ -162,7 +162,7 @@ class Num : public OperateurNumerique
             }
             else
             {
-                throw ErrOperateur('Litterale reele ou complexe');
+                throw ExceptionOperateur("Litterale reele ou complexe");
             }
 
         }
@@ -183,13 +183,13 @@ class Den : public OperateurNumerique
             int dollar;
             place = s.find_first_of('/');
             dollar = s.find_first_of('$');
-            Forme_fraction* f = nullptr;
+            Forme_fraction* f = 0;
             if(place != -1 && dollar ==-1){
             f = a->creerUneLitteraleRationelle(s);
             }
             else if (place == -1 && dollar ==-1) f = a->creerUneLitteraleEntiere("1");
 
-            if(f != nullptr )
+            if(f != 0 )
             {
                 int den = f->getDenominateur();
                 Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(den)), *(new Forme_fraction(0))));
@@ -197,7 +197,7 @@ class Den : public OperateurNumerique
             }
             else
             {
-                throw ErrOperateur('Litterale reele ou complexe');
+                throw ExceptionOperateur("Litterale reele ou complexe");
             }
 
         }
@@ -229,44 +229,44 @@ class Re : public OperateurNumerique
                 slash = tab[0].find_first_of("\/");
                 if(point == -1&&slash == -1)
                 {
-                    Forme_fraction* ln = nullptr;
+                    Forme_fraction* ln = 0;
                     ln = a->creerUneLitteraleEntiere(tab[0]);
-                    if(ln != nullptr )
+                    if(ln != 0 )
                     {
                         Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
                         return Res;
                     }
                     else
                     {
-                        throw ErrOperateur('Erreur');
+                        throw ExceptionOperateur("Erreur");
                     }
                 }
                 else if(point == -1&&slash != -1)
                 {
-                    Forme_fraction* ln = nullptr;
+                    Forme_fraction* ln = 0;
                     ln = a->creerUneLitteraleRationelle(tab[0]);
-                    if(ln != nullptr )
+                    if(ln != 0 )
                     {
                         Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
                         return Res;
                     }
                     else
                     {
-                        throw ErrOperateur('Erreur');
+                        throw ExceptionOperateur("erreur");
                     }
                 }
                 else
                 {
-                    Forme_decimale* ln = nullptr;
+                    Forme_decimale* ln = 0;
                     ln = a->creerUneLitteraleReel(tab[0]);
-                    if(ln != nullptr )
+                    if(ln != 0 )
                     {
                         Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
                         return Res;
                     }
                     else
                     {
-                        throw ErrOperateur('Erreur');
+                        throw ExceptionOperateur("Erreur");
                     }
                 }
 
@@ -293,6 +293,7 @@ class Im : public OperateurNumerique
 
             string s;
             Litteral_calculable *L = L_Tab[0];
+
             s = L->toStr();
             int dollar;
             int point;
@@ -309,10 +310,10 @@ class Im : public OperateurNumerique
 
                 if(point == -1 && slash == -1)
                 {
-                    Forme_fraction* ln = nullptr;
+                    Forme_fraction* ln = 0;
                     ln = a->creerUneLitteraleEntiere(tab[1]);
 
-                    if(ln != nullptr )
+                    if(ln != 0 )
                     {
 
                         Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
@@ -322,15 +323,15 @@ class Im : public OperateurNumerique
                     }
                     else
                     {
-                        throw ErrOperateur('Erreur');
+                        throw ExceptionOperateur("Erreur");
                     }
                 }
                 if(point == -1 && slash != -1)
                 {
-                    Forme_fraction* ln = nullptr;
+                    Forme_fraction* ln = 0;
                     ln = a->creerUneLitteraleRationelle(tab[1]);
 
-                    if(ln != nullptr )
+                    if(ln != 0 )
                     {
 
                         Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
@@ -340,21 +341,21 @@ class Im : public OperateurNumerique
                     }
                     else
                     {
-                        throw ErrOperateur('Erreur');
+                        throw ExceptionOperateur("Erreur");
                     }
                 }
                 else
                 {
-                    Forme_decimale* ln = nullptr;
+                    Forme_decimale* ln = 0;
                     ln = a->creerUneLitteraleReel(tab[1]);
-                    if(ln != nullptr )
+                    if(ln != 0 )
                     {
                         Litteral_calculable &Res = *(new Litteral_numerique((*ln), *(new Forme_fraction(0))));
                         return Res;
                     }
                     else
                     {
-                        throw ErrOperateur('Erreur');
+                        throw ExceptionOperateur("Erreur");
                     }
                 }
 
@@ -389,18 +390,18 @@ class creerComplexe : public OperateurNumerique
             dollar2 = L2->toStr().find_first_of('$');
             if(dollar1 == -1 && dollar2 == -1){
             string complexe = L2->toStr()+"$"+L1->toStr();
-            Litteral_numerique *Ln = nullptr;
+            Litteral_numerique *Ln = 0;
             Ln = a->creerUneLitteraleComplexe(complexe);
 
-            if(Ln != nullptr){
+            if(Ln != 0){
                 Litteral_calculable &Res = *(new Litteral_numerique(*Ln));
                 return Res;
             }
             else
-                throw ErrOperateur('Syntaxe invalide');
+                throw ExceptionOperateur("Syntaxe invalide");
             }
             else
-                throw ErrOperateur('Ne peut etre transforme en complexe');
+                throw ExceptionOperateur("Ne peut etre transforme en complexe");
 
         }
 };
@@ -430,8 +431,7 @@ class Clear : public Operateur
 class Lastop : public Operateur
 {
     public:
-        Pile& operation(const Pile& P){}
-        void appliquer(Computer &c);
+        Pile& operation(const Pile& P);
 };
 
 class Lastargs : public Operateur
@@ -443,15 +443,13 @@ class Lastargs : public Operateur
 class Undo : public Operateur
 {
     public:
-        Pile& operation(const Pile& P){}
-        void appliquer(Computer& c);
+        Pile& operation(const Pile& P);
 };
 
 class Redo : public Operateur
 {
     public:
-        Pile& operation(const Pile& P){}
-        void appliquer(Computer& c);
+        Pile& operation(const Pile& P);
 };
 
 class And : public OperateurNumerique
@@ -724,25 +722,6 @@ class Superieur : public OperateurNumerique
 
         }
 };
-
-/*class Eval : public Operateur
-{
-    public:
-        Eval(Analyseur* A) : Operateur(A) {}
-    /*    Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
-        {
-            Litteral_calculable *L1 = L_Tab[0];
-            string pre_exp = L1->toStr();
-            string exp = toRPN(pre_exp);
-            Litteral_calculable* Res = getAnalyseur()->evaluer(exp);
-            if(Res != 0)
-                    return  *Res;
-            else
-                throw(ExceptionOperateur("Ce littéral n'est pas évaluable"));
-        }
-        virtual Pile& operation(const Pile& P);
-        virtual void appliquer(Computer& PM);
-}; */
 class Eval : public Operateur
 {
     public:
@@ -755,6 +734,12 @@ class Eval : public Operateur
 class Dupliquer : public Operateur
 {
     public:
+        Pile& operation(const Pile& P);
+};
+class Sto : public Operateur
+{
+     public:
+        Sto(Analyseur* A) : Operateur(A) {}
         Pile& operation(const Pile& P);
 };
 

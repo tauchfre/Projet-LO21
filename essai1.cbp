@@ -34,6 +34,8 @@
 		</Compiler>
 		<Unit filename="analyseur.cpp" />
 		<Unit filename="analyseur.h" />
+		<Unit filename="atomes.cpp" />
+		<Unit filename="atomes.h" />
 		<Unit filename="litteraux.cpp" />
 		<Unit filename="litteraux.h" />
 		<Unit filename="main.cpp" />

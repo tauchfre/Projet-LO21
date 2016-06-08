@@ -167,6 +167,42 @@ Operateur* Analyseur::creerOperateur(string ID) {
     {
         return (new creerComplexe);
     }
+   else if(ID == "AND")
+    {
+        return (new And);
+    }
+   else if(ID == "OR")
+    {
+        return (new Or);
+    }
+   else if(ID == "NOT")
+    {
+        return (new Not);
+    }
+   else if(ID == "=")
+    {
+        return (new Egal);
+    }
+   else if(ID == "!=")
+    {
+        return (new Different);
+    }
+   else if(ID == "=<")
+    {
+        return (new InfOuEgal);
+    }
+   else if(ID == ">=")
+    {
+        return (new SupOuEgal);
+    }
+   else if(ID == "<")
+    {
+        return (new Inferieur);
+    }
+   else if(ID == ">")
+    {
+        return (new Superieur);
+    }
 
 /*
     else if(ID == "LASTOP")

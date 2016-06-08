@@ -450,6 +450,278 @@ class Redo : public Operateur
     public:
         Pile& operation(const Pile& P);
 };
+
+class And : public OperateurNumerique
+{
+
+    public:
+        And() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+            string l1 = L1->toStr();
+            string l2 = L2->toStr();
+            bool test1 = true;
+            bool test2 = true;
+
+            if(l1 == "0")test1 = false;
+            if(l2 == "0")test2 = false;
+
+            if(test1 == true && test2 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
+class Or : public OperateurNumerique
+{
+
+    public:
+        Or() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+            string l1 = L1->toStr();
+            string l2 = L2->toStr();
+            bool test1 = true;
+            bool test2 = true;
+
+            if(l1 == "0")test1 = false;
+            if(l2 == "0")test2 = false;
+
+            if(test1 == true || test2 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
+class Not : public OperateurNumerique
+{
+
+    public:
+        Not() : OperateurNumerique(1) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+
+            string l1 = L1->toStr();
+
+            bool test1 = false;
+
+            if(l1 == "0")test1 = true;
+
+            if(test1 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
+class Egal : public OperateurNumerique
+{
+
+    public:
+        Egal() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+            string l1 = L1->toStr();
+            string l2 = L2->toStr();
+            bool test1 = false;
+
+            if(l1 == l2)test1 = true;
+
+
+            if(test1 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
+class Different : public OperateurNumerique
+{
+
+    public:
+        Different() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+            string l1 = L1->toStr();
+            string l2 = L2->toStr();
+            bool test1 = false;
+
+            if(l1 != l2)test1 = true;
+
+
+            if(test1 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
+class InfOuEgal : public OperateurNumerique
+{
+
+    public:
+        InfOuEgal() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+            string l1 = L1->toStr();
+            string l2 = L2->toStr();
+            bool test1 = false;
+
+            if(l2 < l1 || l2 == l1)test1 = true;
+
+
+            if(test1 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
+class SupOuEgal : public OperateurNumerique
+{
+
+    public:
+        SupOuEgal() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+            string l1 = L1->toStr();
+            string l2 = L2->toStr();
+            bool test1 = false;
+
+            if(l2 > l1 || l2 == l1)test1 = true;
+
+
+            if(test1 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
+class Inferieur : public OperateurNumerique
+{
+
+    public:
+        Inferieur() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+            string l1 = L1->toStr();
+            string l2 = L2->toStr();
+            bool test1 = false;
+
+            if(l2 < l1)test1 = true;
+
+
+            if(test1 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
+class Superieur : public OperateurNumerique
+{
+
+    public:
+        Superieur() : OperateurNumerique(2) {}
+        Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
+        {
+            Litteral_calculable *L1 = L_Tab[0];
+            Litteral_calculable *L2 = L_Tab[1];
+            string l1 = L1->toStr();
+            string l2 = L2->toStr();
+            bool test1 = false;
+
+            if(l2 > l1)test1 = true;
+
+
+            if(test1 == true){
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(1)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+            else {
+                Litteral_numerique &Res =  *(new Litteral_numerique(*(new Forme_fraction(0)), *(new Forme_fraction(0))));
+                return Res;
+
+            }
+
+        }
+};
+
 /*class Eval : public Operateur
 {
     public:

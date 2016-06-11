@@ -69,8 +69,8 @@ class Div : public OperateurNumerique
 
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string str1 = L1->toStr();
-            string str2 = L2->toStr();
+            QString str1 = L1->toStr();
+            QString str2 = L2->toStr();
             Forme_fraction *f1 = 0;
             f1 = a->creerUneLitteraleEntiere(str1);
             Forme_fraction *f2 = 0;
@@ -99,8 +99,8 @@ class Mod : public OperateurNumerique
 
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string str1 = L1->toStr();
-            string str2 = L2->toStr();
+            QString str1 = L1->toStr();
+            QString str2 = L2->toStr();
             Forme_fraction *f1 = 0;
             f1 = a->creerUneLitteraleEntiere(str1);
             Forme_fraction *f2 = 0;
@@ -141,13 +141,13 @@ class Num : public OperateurNumerique
         Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
         {
 
-            string s;
+            QString s;
             Litteral_calculable *L = L_Tab[0];
             s = L->toStr();
             int place;
             int dollar;
-            dollar = s.find_first_of('$');
-            place = s.find_first_of('/');
+            dollar = s.indexOf('$');
+            place = s.indexOf('/');
             Forme_fraction* f = 0;
             if(place != -1&& dollar == -1){
             f = a->creerUneLitteraleRationelle(s);
@@ -176,13 +176,13 @@ class Den : public OperateurNumerique
         Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
         {
 
-            string s;
+            QString s;
             Litteral_calculable *L = L_Tab[0];
             s = L->toStr();
             int place;
             int dollar;
-            place = s.find_first_of('/');
-            dollar = s.find_first_of('$');
+            place = s.indexOf('/');
+            dollar = s.indexOf('$');
             Forme_fraction* f = 0;
             if(place != -1 && dollar ==-1){
             f = a->creerUneLitteraleRationelle(s);
@@ -212,21 +212,21 @@ class Re : public OperateurNumerique
         Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
         {
 
-            string s;
+            QString s;
             Litteral_calculable *L = L_Tab[0];
             s = L->toStr();
             int dollar;
             int point;
             int slash;
-            dollar = s.find_first_of('$');
+            dollar = s.indexOf('$');
 
 
             if(dollar != -1)
             {
-                string *tab = new string[2];
+                QString *tab = new QString[2];
                 tab = a->getReEtIm(s);
-                point = tab[0].find_first_of("\.");
-                slash = tab[0].find_first_of("\/");
+                point = tab[0].indexOf("/.");
+                slash = tab[0].indexOf("//");
                 if(point == -1&&slash == -1)
                 {
                     Forme_fraction* ln = 0;
@@ -291,22 +291,22 @@ class Im : public OperateurNumerique
         Litteral_calculable& calcul(Litteral_calculable **L_Tab) const
         {
 
-            string s;
+            QString s;
             Litteral_calculable *L = L_Tab[0];
 
             s = L->toStr();
             int dollar;
             int point;
             int slash;
-            dollar = s.find_first_of('$');
+            dollar = s.indexOf('$');
 
 
             if(dollar != -1)
             {
-                string *tab = new string[2];
+                QString *tab = new QString[2];
                 tab = a->getReEtIm(s);
-                point = tab[1].find_first_of("\.");
-                slash = tab[1].find_first_of("\/");
+                point = tab[1].indexOf("/.");
+                slash = tab[1].indexOf("//");
 
                 if(point == -1 && slash == -1)
                 {
@@ -386,10 +386,10 @@ class creerComplexe : public OperateurNumerique
 
             int dollar1;
             int dollar2;
-            dollar1 = L1->toStr().find_first_of('$');
-            dollar2 = L2->toStr().find_first_of('$');
+            dollar1 = L1->toStr().indexOf('$');
+            dollar2 = L2->toStr().indexOf('$');
             if(dollar1 == -1 && dollar2 == -1){
-            string complexe = L2->toStr()+"$"+L1->toStr();
+            QString complexe = L2->toStr()+"$"+L1->toStr();
             Litteral_numerique *Ln = 0;
             Ln = a->creerUneLitteraleComplexe(complexe);
 
@@ -439,21 +439,22 @@ class Lastargs : public Operateur
     public:
         Pile& operation(const Pile& P);
 };
-
+/*
 class Undo : public Operateur
 {
     public:
-        Pile& operation(const Pile& P) {}
-        void appliquer(Computer& c) { c.popHistorique(true);  c.undo(); }
+        Pile& operation(const Pile& P);
+        void appliquer(Computer& c);
+
 };
+
 class Redo : public Operateur
 {
     public:
-        Pile& operation(const Pile& P) { }
-        void appliquer(Computer& c) { c.popHistorique(true);  c.redo(); }
+        Pile& operation(const Pile& P);
+        void appliquer(Computer& c);
 };
-
-
+*/
 class And : public OperateurNumerique
 {
 
@@ -463,8 +464,8 @@ class And : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string l1 = L1->toStr();
-            string l2 = L2->toStr();
+            QString l1 = L1->toStr();
+            QString l2 = L2->toStr();
             bool test1 = true;
             bool test2 = true;
 
@@ -494,8 +495,8 @@ class Or : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string l1 = L1->toStr();
-            string l2 = L2->toStr();
+            QString l1 = L1->toStr();
+            QString l2 = L2->toStr();
             bool test1 = true;
             bool test2 = true;
 
@@ -525,7 +526,7 @@ class Not : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
 
-            string l1 = L1->toStr();
+            QString l1 = L1->toStr();
 
             bool test1 = false;
 
@@ -554,8 +555,8 @@ class Egal : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string l1 = L1->toStr();
-            string l2 = L2->toStr();
+            QString l1 = L1->toStr();
+            QString l2 = L2->toStr();
             bool test1 = false;
 
             if(l1 == l2)test1 = true;
@@ -584,8 +585,8 @@ class Different : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string l1 = L1->toStr();
-            string l2 = L2->toStr();
+            QString l1 = L1->toStr();
+            QString l2 = L2->toStr();
             bool test1 = false;
 
             if(l1 != l2)test1 = true;
@@ -614,8 +615,8 @@ class InfOuEgal : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string l1 = L1->toStr();
-            string l2 = L2->toStr();
+            QString l1 = L1->toStr();
+            QString l2 = L2->toStr();
             bool test1 = false;
 
             if(l2 < l1 || l2 == l1)test1 = true;
@@ -644,8 +645,8 @@ class SupOuEgal : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string l1 = L1->toStr();
-            string l2 = L2->toStr();
+            QString l1 = L1->toStr();
+            QString l2 = L2->toStr();
             bool test1 = false;
 
             if(l2 > l1 || l2 == l1)test1 = true;
@@ -674,8 +675,8 @@ class Inferieur : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string l1 = L1->toStr();
-            string l2 = L2->toStr();
+            QString l1 = L1->toStr();
+            QString l2 = L2->toStr();
             bool test1 = false;
 
             if(l2 < l1)test1 = true;
@@ -704,8 +705,8 @@ class Superieur : public OperateurNumerique
         {
             Litteral_calculable *L1 = L_Tab[0];
             Litteral_calculable *L2 = L_Tab[1];
-            string l1 = L1->toStr();
-            string l2 = L2->toStr();
+            QString l1 = L1->toStr();
+            QString l2 = L2->toStr();
             bool test1 = false;
 
             if(l2 > l1)test1 = true;
@@ -730,7 +731,7 @@ class Eval : public Operateur
         Eval(Analyseur* pt_analyseur=0) : Operateur(pt_analyseur) {}
         Analyseur* getAnalyseur() const { return a; }
         void setAnalyseur(Analyseur& newA) { a = &newA; }
-        Pile& operation(const Pile& P)  { }
+         Pile& operation(const Pile& P){Pile res = P; return res;}
         void appliquer(Computer& C);
 };
 class Dupliquer : public Operateur

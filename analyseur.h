@@ -5,44 +5,46 @@
 #include "litteraux.h"
 #include "pile.h"
 #include "operateurs.h"
-#include <iostream>
-#include <string>
-#include "atomes.h"
-using namespace std;
+
+#include <QString>
+#include <QTextStream>
+#include <QObject>
+#include <QDebug>
+#include "qanalyseur.h"
+
 
 
 class Analyseur
 {
     ListeAtomes& atomes;
-    map<string,Operateur&> operateurs;
+    QString message;
     public:
-        Analyseur();
-        Analyseur(map<string,Operateur&> opSupp);
 
-
+        void setMessage(const QString & mess){message = mess; }
+        QString getMessage(){return message;}
+        Analyseur() : atomes(* new ListeAtomes) {}
+        ListeAtomes& getAtomes() { return atomes; }
         Litteral_numerique* evaluer(ConteneurOperande** exp, unsigned int taille);
-        Litteral_numerique* evaluer(string str);
+        Litteral_numerique* evaluer(QString str);
+        Operateur* creerOperateur(QString ID);
+        virtual Operateur* operateurSupplementaire(QString ID) { return 0; }
+
         void effectuer(ConteneurOperande** exp, unsigned int nbOp, Computer &c);
 
-        Operateur* creerOperateur(string ID);
-        virtual Operateur* operateurSupplementaire(string ID) { return 0; }
-        void addOperateursCourants();
-        void addOperateur(string key, Operateur& op) { if(operateurs.find("key") == operateurs.end()) { operateurs.insert(  pair<string, Operateur&>(key,op)); }  }
+        ConteneurOperande** interpreter(const QString &commande);
+        Forme_fraction *creerUneLitteraleRationelle(const QString &s);
+        Forme_decimale *creerUneLitteraleReel(const QString &s);
+        Forme_fraction *creerUneLitteraleEntiere(const QString& s);
+        Litteral_numerique *creerUneLitteraleComplexe(const QString& s);
 
-        ListeAtomes& getAtomes() { return atomes; }
-
-        ConteneurOperande** interpreter(const string &commande);
-        Forme_fraction *creerUneLitteraleRationelle(const string &s);
-        Forme_decimale *creerUneLitteraleReel(const string &s);
-        Forme_fraction *creerUneLitteraleEntiere(const string& s);
-        Litteral_numerique *creerUneLitteraleComplexe(const string& s);
-        int *getNumEtDen(const string & fraction);
-        string *getReEtIm(const string & fraction);
-
+        int *getNumEtDen(const QString & fraction);
+        QString *getReEtIm(const QString & fraction);
 };
 
-class Computer
+class Computer : public QObject
 {
+	Q_OBJECT
+
     private:
         Pile* pileActuelle;
         int maxHistorique;
@@ -51,25 +53,28 @@ class Computer
         int undoDisponible;
         Pile** historiqueRedo;
         int redoDisponible;
+        int nbAfficher;
+
+
+
 
     public:
-        Computer(int T=500): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
-        Computer(map<string,Operateur&> opSupp, int T=500) : a(opSupp), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
+        Computer(int T=50): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
         Pile& getPileActuelle() const { return *pileActuelle; }
         Litteral& pop();
         void push(Litteral& L);
-        void afficherPile() { if(pileActuelle != 0) pileActuelle->afficher();};
         void setPileActuelle(Pile &P) { pileActuelle = &P; }
-
         void pushHistorique(Pile& P, bool isUndo=true);
         Pile& popHistorique(bool isUndo=true);
-        void undo();
-        void redo();
-
         Analyseur& getAnalyseur() { return a; }
-
-        void effectuer(string commande); // Computer& c);
+        void setNbAfficher(int nb){nbAfficher = nb;}
+        int getNbAfficher(){return nbAfficher;}
+		
+        void effectuer(QString commande); // Computer& c);
         void effectuer(ConteneurOperande** exp, unsigned int nbOp);// Computer& c);
+		
+        signals:
+             void modificationEtat();
 
 };
 

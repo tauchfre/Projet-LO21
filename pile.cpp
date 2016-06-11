@@ -3,18 +3,7 @@
 
 
 // METHODES DE LA CLASSE PILE
-void Pile::afficher() const
-{
-    if(taille > 0)
-    {
-        cout << "Pile :" << endl;
-        for(int i = taille-1; i>=0; i--) // On affiche à l'envers !
-        {
-            cout << "> ("<<i<<") " << *litteraux[i];
-            cout << endl;
-        }
-    }
-}
+
 void Pile::push(Litteral& L)
 {
     if(taille < tailleMax)
@@ -24,6 +13,8 @@ void Pile::push(Litteral& L)
     }
     else
         throw ExceptionPile("Taille max atteinte");
+
+
 }
 Litteral& Pile::pop()
 {
@@ -34,6 +25,8 @@ Litteral& Pile::pop()
     }
     else
         throw ExceptionPile("Pas d'élement à dépiler");
+
+
 
 }
 Pile::Pile(const Pile& P) : litteraux(new Litteral*[P.getTailleMax()]),tailleMax(P.getTailleMax()),taille(0)

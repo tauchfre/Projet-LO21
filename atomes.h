@@ -5,16 +5,16 @@
 #include <map>
 using namespace std;
 
-enum TypeAtome{var,progg,NIL};
+enum TypeAtome{var,prog,NIL};
 class ListeAtomes
 {
     private:
-        map<string,Litteral_calculable&> variables;
-        map<string,Litteral_programme&> programmes;
+        map<QString,Litteral_calculable&> variables;
+        map<QString,Litteral_programme&> programmes;
     public:
-        TypeAtome atomeExiste(string str);
-        Litteral& traduireAtome(string str);
-        void ajouterAtome(string key, const Litteral& L);
-        ConteneurOperande* interpreter(string str);
+        TypeAtome atomeExiste(QString str);
+        Litteral& traduireAtome(QString str);
+        void ajouterAtome(QString key, const Litteral& L);
+        ConteneurOperande** interpreter(QString str);
 };
 #endif // ATOMES_H_INCLUDED

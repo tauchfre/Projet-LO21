@@ -421,12 +421,6 @@ class Swap : public Operateur
         Pile& operation(const Pile& P);
 };
 
-class Clear : public Operateur
-{
-    public:
-        Pile& operation(const Pile& P);
-};
-
 
 class Lastop : public Operateur
 {
@@ -440,6 +434,11 @@ class Lastargs : public Operateur
         Pile& operation(const Pile& P);
 };
 
+class Clear : public Operateur
+{
+    public:
+        Pile& operation(const Pile& P);
+};
 class Undo : public Operateur
 {
     public:
@@ -741,7 +740,7 @@ class Dupliquer : public Operateur
 class Sto : public Operateur
 {
      public:
-        Sto(Analyseur* A) : Operateur(A) {}
+        Sto(Analyseur* A) : Operateur(false, A) {}
         Pile& operation(const Pile& P);
 };
 

@@ -101,10 +101,14 @@ bool operator!=(const Forme_fraction &f1, const Forme_fraction &f2);
 class Computer;
 class Litteral
 {
+    private:
+        bool calculable;
     public:
+        Litteral(bool c) : calculable(c) {}
         virtual Litteral* eval(Computer& c) const = 0;
         virtual ostream& concat(ostream& f) const { throw ExceptionLitteral("Pas de concat pour ce littéral"); }
         virtual Litteral& copie() const = 0;
+        bool isCalculable() { return calculable; }
         virtual string toStr() const = 0;
 };
 
@@ -115,7 +119,7 @@ class Litteral_calculable : public Litteral
         TypeLCalculable type;
     public:
         virtual Litteral* eval(Computer& c) const = 0;
-        Litteral_calculable(TypeLCalculable T):type(T) {}
+        Litteral_calculable(TypeLCalculable T):type(T), Litteral(true) {}
         virtual Litteral_calculable& operator+(const Litteral_calculable& L) const;
         virtual Litteral_calculable& operator-(const Litteral_calculable& L) const;
         virtual Litteral_calculable& operator*(const Litteral_calculable& L) const;
@@ -146,7 +150,7 @@ class Litteral_numerique : public Litteral_calculable
         Reel& partie_reele;
         Reel& partie_imaginaire;
     public:
-        Litteral_numerique(Reel& re, Reel& im) : partie_reele(re), partie_imaginaire(im), Litteral_calculable(numerique) {}
+        Litteral_numerique(Reel& re, Reel& im) :  partie_reele(re), partie_imaginaire(im), Litteral_calculable(numerique) {}
         Litteral_numerique(float re, float im=0)
         : partie_reele(*(new Forme_decimale(re))), partie_imaginaire(*(new Forme_decimale(im))), Litteral_calculable(numerique){}
         Litteral_numerique(const Litteral_numerique& L) : partie_reele(L.getRe()), partie_imaginaire(L.getIm()), Litteral_calculable(numerique) { }
@@ -169,19 +173,12 @@ class Litteral_programme : public Litteral
     private:
         string commande;
     public:
-        Litteral_programme(string com) : commande(com) {}
-        Litteral_programme(const char* com) : commande((string)com) {}
+        Litteral_programme(string com) : Litteral(false), commande(com) {}
+        Litteral_programme(const char* com) : Litteral(false), commande((string)com) {}
         Litteral* eval(Computer &c) const;
         ostream& concat(ostream &f) const { return f << "[" << commande << "]"; }
         string toStr() const {  return commande; }
         Litteral& copie() const{ return *(new Litteral_programme(*this)); }
-};
-class Litteral_atome : public Litteral
-{
-    private:
-        string exp;
-    public:
-        Litteral_atome(const char* str) : exp(str) {  }
 };
 
 

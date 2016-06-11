@@ -17,7 +17,7 @@ void Pile::afficher() const
 }
 void Pile::push(Litteral& L)
 {
-    if(taille < tailleMax)
+    if(taille < tailleMax )
     {
         litteraux[taille] = &L.copie();
         taille++;

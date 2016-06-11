@@ -115,7 +115,6 @@ Litteral* Litteral_expression::eval(Computer &c) const
 {
     string new_exp = toRPN(exp);
     Litteral* Res = c.getAnalyseur().evaluer(new_exp);
-    c.popHistorique(true);
     if(Res != 0)
         return  Res;
     else

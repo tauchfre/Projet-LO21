@@ -19,8 +19,10 @@ class Operateur
 {
     protected:
         Analyseur* a;
+        bool estAnnulable;
     public:
-        Operateur(Analyseur* pt_analyseur=0) : a(pt_analyseur) {}
+        Operateur(Analyseur* pt_analyseur=0) : a(pt_analyseur), estAnnulable(true) {}
+        Operateur(bool B, Analyseur* pt_analyseur=0) : a(pt_analyseur), estAnnulable(B) {}
         Analyseur* getAnalyseur() const { return a; }
         void setAnalyseur(Analyseur& newA) { a = &newA; }
         virtual Pile& operation(const Pile& P) = 0;

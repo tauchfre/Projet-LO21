@@ -18,6 +18,7 @@ void boucle()
      try
     {
         Computer c;
+        c.chargerFichier("save.ini");
         Additionner add;
         ConteneurOperande cAdd(add);
         Dupliquer dup;
@@ -31,8 +32,6 @@ void boucle()
         Litteral_calculable &l_2 = L2;
         Litteral &l2 = L2;
         ConteneurOperande cL2(l2);
-        c.push(l1);
-        c.push(l2);
         ConteneurOperande* cMul = new ConteneurOperande(* new Multiplier);;
 
         ConteneurOperande** commande = new ConteneurOperande*[5];
@@ -64,6 +63,7 @@ void boucle()
                 commande_user = "";
             }
         }
+        c.enregistrerFichier("save.ini");
     }
     catch(Exception e)
     {

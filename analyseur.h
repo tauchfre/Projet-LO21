@@ -7,7 +7,7 @@
 #include "operateurs.h"
 #include <iostream>
 #include <string>
-#include "atomes.h"
+
 using namespace std;
 
 
@@ -53,13 +53,17 @@ class Computer
         int redoDisponible;
 
     public:
-        Computer(int T=500): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
-        Computer(map<string,Operateur&> opSupp, int T=500) : a(opSupp), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
+        Computer(int T=500): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T+1]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
+        Computer(map<string,Operateur&> opSupp, int T=500) : a(opSupp), pileActuelle(new Pile),historiqueUndo(new Pile*[T+1]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
         Pile& getPileActuelle() const { return *pileActuelle; }
         Litteral& pop();
         void push(Litteral& L);
         void afficherPile() { if(pileActuelle != 0) pileActuelle->afficher();};
         void setPileActuelle(Pile &P) { pileActuelle = &P; }
+
+//        bool chargerFichier(string path);
+        bool chargerFichier(const char* path);
+        bool enregistrerFichier(const char* path);
 
         void pushHistorique(Pile& P, bool isUndo=true);
         Pile& popHistorique(bool isUndo=true);

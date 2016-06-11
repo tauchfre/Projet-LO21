@@ -2,6 +2,8 @@
 
 #include "analyseur.h"
 #include "atomes.h"
+#include <QtXml>
+#include <QString>
 #include "operateurs_instances.h"
 #include <iostream>
 #include <string>
@@ -12,6 +14,140 @@
 
 // METHODES DE LA CLASSE COMPUTER
 
+bool Computer::chargerFichier(const char* path)
+{
+        QDomDocument *dom = new QDomDocument("mon_xml");
+        QFile xml_doc(path);
+        if(!xml_doc.open(QIODevice::ReadOnly) && !xml_doc.open(QIODevice::ReadWrite) ) // si on peut pas read on readwrite (première ouverture)
+        {
+            cout << "Le fichier ne peut être ouvert";
+            return false;
+        }
+        else if (!dom->setContent(&xml_doc))
+        {
+                xml_doc.close();
+                cout << "Le fichier n'est pas correct";
+                return false;
+        }
+        else
+        {
+            QDomElement dom_elem = dom->documentElement();
+            for(QDomNode node = dom_elem.firstChild(); ! node.isNull(); node = node.nextSibling())
+            {
+                if(node.nodeName().toStdString() == (string) "atomes")
+                {
+                    for(QDomElement element = node.firstChildElement(); ! element.isNull(); element = element.nextSibling().toElement())
+                    {
+                        string tag = element.tagName().toStdString();
+                        string id = element.attribute("name").toStdString();
+                        string value = element.attribute("value").toStdString();
+                        if(tag == (string)"prog")
+                        {
+                            getAnalyseur().getAtomes().ajouterAtome(id, * new Litteral_programme(value));
+                        }
+                        if(tag == (string)"exp")
+                        {
+                            getAnalyseur().getAtomes().ajouterAtome(id, * new Litteral_expression(value));
+                        }
+                        if(tag == (string)"num")
+                        {
+                            getAnalyseur().getAtomes().ajouterAtome(id,  * getAnalyseur().evaluer(value));
+                        }
+                    }
+                }
+                if(node.nodeName().toStdString() == (string) "pile")
+                {
+                    for(QDomElement element = node.firstChildElement(); ! element.isNull(); element = element.nextSibling().toElement())
+                    {
+                        string tag = element.tagName().toStdString();
+                        string value = element.attribute("value").toStdString();
+
+                        if(tag == (string)"exp")
+                        {
+                            pileActuelle->push(* new Litteral_expression(value));
+                        }
+                       if(tag == (string)"prog")
+                        {
+                            pileActuelle->push(* new Litteral_programme(value));
+                        }
+                       if(tag == (string)"num")
+                       {
+                           pileActuelle->push( * getAnalyseur().evaluer(value)) ;
+                       }
+                    }
+                }
+            }
+            xml_doc.close();
+          //  pileActuelle->afficher();
+        }
+}
+bool Computer::enregistrerFichier(const char* path)
+{
+    QDomDocument *dom = new QDomDocument("mon_xml");
+    QFile xml_doc(path);
+    if(!xml_doc.open(QIODevice::WriteOnly) ) // si on peut pas read on readwrite (première ouverture)
+    {
+        cout << "Le fichier ne peut être ouvert";
+        return false;
+    }
+    else
+    {
+        QXmlStreamWriter xml_stream(&xml_doc);
+        xml_stream.writeStartDocument();
+        xml_stream.writeStartElement("etat_controleur");
+        xml_stream.writeStartElement("pile");
+        for(int i = pileActuelle->getTaille(); i >= 1; i--)
+        {
+            Litteral &L = pileActuelle->pop();
+            if(L.isCalculable() == true)
+            {
+                try
+                {
+                    Litteral_calculable &L_calc = dynamic_cast<Litteral_calculable&>(L);
+                    if(L_calc.getType() == expression )
+                        xml_stream.writeStartElement("exp");
+                    else if(L_calc.getType() == numerique)
+                        xml_stream.writeStartElement("num");
+                }
+                catch(bad_cast& e)
+                {
+                    throw(Exception("Littérale mal définie"));
+                }
+            }
+            else
+                xml_stream.writeStartElement("prog");
+            xml_stream.writeAttribute("value",L.toStr().c_str());
+            xml_stream.writeEndElement();
+
+        }
+        xml_stream.writeEndElement();
+        xml_stream.writeStartElement("atomes");
+        ListeAtomes &L_A = getAnalyseur().getAtomes();
+        for(ListeAtomes::iterator_var I = L_A.begin_var(); I != L_A.end_var(); ++I)
+        {
+            if(I->second.getType() == expression)
+                xml_stream.writeStartElement("exp");
+            else
+                xml_stream.writeStartElement("num");
+            xml_stream.writeAttribute("name",I->first.c_str());
+
+            xml_stream.writeAttribute("value",I->second.toStr().c_str());
+            xml_stream.writeEndElement();
+        }
+        for(ListeAtomes::iterator_prog I = L_A.begin_prog(); I != L_A.end_prog(); ++I)
+        {
+            xml_stream.writeStartElement("prog");
+            xml_stream.writeAttribute("name",I->first.c_str());
+            xml_stream.writeAttribute("value",I->second.toStr().c_str());
+            xml_stream.writeEndElement();
+        }
+        xml_stream.writeEndElement();
+        xml_stream.writeEndElement();
+
+        xml_stream.writeEndDocument();
+        xml_doc.close();
+    }
+}
 void Computer::pushHistorique(Pile& P, bool isUndo)
 {
     if(isUndo==true && undoDisponible < maxHistorique)
@@ -116,6 +252,7 @@ void Analyseur::addOperateursCourants()
     addOperateur("DUP", * new Dupliquer);
     addOperateur("DROP", * new Drop);
     addOperateur("SWAP", * new Swap);
+    addOperateur("CLEAR", * new Clear);
     addOperateur("Clear", * new Clear);
     addOperateur("+", * new Additionner);
     addOperateur("-", * new Soustraire);

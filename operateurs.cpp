@@ -11,6 +11,8 @@ void Operateur::appliquer(Computer& PM)
     {
         Pile &ResOp = this->operation(pileActuelle);
         PM.setPileActuelle(ResOp);
+        if(estAnnulable == false)
+            PM.popHistorique(true);
     }
     catch(ExceptionOperateur e)
     {

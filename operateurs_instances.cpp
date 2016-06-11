@@ -37,8 +37,9 @@ Pile& Clear::operation(const Pile& P)
     Pile &Res = * (new Pile(P));
     while (Res.getTaille()>0)
     {
+        int taille = Res.getTaille();
         Res.pop();
-        Res.setTaille(Res.getTaille()-1);
+        Res.setTaille(taille-1);
 
     }
     return Res;

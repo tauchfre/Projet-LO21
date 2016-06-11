@@ -15,6 +15,7 @@ void Operateur::appliquer(Computer& PM)
     }
     catch(ExceptionOperateur e)
     {
+
         e.afficher();
     }
 }

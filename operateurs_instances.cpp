@@ -29,16 +29,6 @@ Pile& Swap::operation(const Pile& P)
     return Res;
 }
 
-Pile& Undo::operation(const Pile& P)
-{
-    Pile &Res = * (new Pile(P));
-
-    Litteral &L1 = Res.pop();
-    Litteral &L2 = Res.pop();
-    Res.push(L1);
-    Res.push(L2);
-    return Res;
-}
 
 Pile& Clear::operation(const Pile& P)
 {
@@ -67,12 +57,7 @@ Pile& Lastargs::operation(const Pile& P)
     return Res;
 }
 
-Pile& Redo::operation(const Pile& P)
-{
-    Pile &Res = *(new Pile(P));
 
-    return Res;
-}
 /*Pile& OperateurNumerique::operation(const Pile &P)
 {
     Pile &Res = * (new Pile(P));

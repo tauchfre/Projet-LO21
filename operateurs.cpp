@@ -10,7 +10,6 @@ void Operateur::appliquer(Computer& PM)
     try
     {
         Pile &ResOp = this->operation(pileActuelle);
-        PM.pushHistorique(pileActuelle);
         PM.setPileActuelle(ResOp);
     }
     catch(ExceptionOperateur e)

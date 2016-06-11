@@ -24,19 +24,18 @@ void ListeAtomes::ajouterAtome(string key, const Litteral& L)
 TypeAtome ListeAtomes::atomeExiste(string key)
 {
     if(programmes.find(key) != programmes.end())
-    {
+        return progg;
 
-cout << "progggg";
-        return prog; }
     else if (variables.find(key) != variables.end())
         return var;
+
     else
         return NIL;
 }
 Litteral& ListeAtomes::traduireAtome(string str)
 {
     TypeAtome existenceAtome = atomeExiste(str);
-    if(existenceAtome == prog)
+    if(existenceAtome == progg)
     {   Litteral_programme& P = programmes.find(str)->second;
         return P; }
     else if(existenceAtome == var)
@@ -46,21 +45,9 @@ Litteral& ListeAtomes::traduireAtome(string str)
     else
         return * new Litteral_expression(str);
 }
-ConteneurOperande** ListeAtomes::interpreter(string str)
+ConteneurOperande* ListeAtomes::interpreter(string str)
 {
     Litteral& L = traduireAtome(str);
-    if(atomeExiste(str) == prog)
-    {
-        cout  << "PROGRAMME !!";
-        ConteneurOperande** res = new ConteneurOperande* [2];
-        res[1] = new ConteneurOperande(L);
-        res[0] = new ConteneurOperande(* ( new Eval() ) );
-        return res;
-    }
-    else
-    {
-        ConteneurOperande** res = new ConteneurOperande* [1];
-        res[0] = new ConteneurOperande(L);
-        return res;
-    }
+    ConteneurOperande* res = new ConteneurOperande(L);
+    return res;
 }

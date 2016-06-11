@@ -1,6 +1,7 @@
 
 
 #include "analyseur.h"
+#include "atomes.h"
 #include "operateurs_instances.h"
 #include <iostream>
 #include <string>
@@ -13,12 +14,12 @@
 
 void Computer::pushHistorique(Pile& P, bool isUndo)
 {
-    if(isUndo && undoDisponible < maxHistorique)
+    if(isUndo==true && undoDisponible < maxHistorique)
     {
         historiqueUndo[undoDisponible] = &P;
         undoDisponible++;
     }
-    else if(!isUndo && redoDisponible < maxHistorique)
+    else if(isUndo==false && redoDisponible < maxHistorique)
     {
         historiqueRedo[redoDisponible] = &P;
         redoDisponible++;
@@ -38,7 +39,7 @@ Pile& Computer::popHistorique(bool isUndo)
     else if(!isUndo && redoDisponible > 0)
     {
         redoDisponible--;
-        return * (historiqueUndo[redoDisponible]);
+        return * (historiqueRedo[redoDisponible]);
     }
     else
     {
@@ -48,21 +49,24 @@ Pile& Computer::popHistorique(bool isUndo)
 
 Litteral& Computer::pop()
 {
+    return pileActuelle->pop(); /*
      pushHistorique(*pileActuelle, true);
      Pile newP(*pileActuelle);
      Litteral &res = newP.pop();
      pileActuelle = &newP;
-     return res;
+     return res; */
 }
 void Computer::push(Litteral& L)
 {
-     pushHistorique(*pileActuelle, true);
-     Pile *newP = new Pile(*pileActuelle);
-     newP->push(L);
-     pileActuelle = newP;
+    pileActuelle->push(L);
+   //  newP->push(L);
+    // pileActuelle = newP;
 }
 void Computer::effectuer(ConteneurOperande** exp, unsigned int nbOp)
 {
+    pushHistorique(*pileActuelle, true);
+    Pile *newP = new Pile(*pileActuelle);
+    pileActuelle = newP;
     a.effectuer(exp,nbOp,*this);
 }
 void Computer::effectuer(string str)
@@ -72,8 +76,72 @@ void Computer::effectuer(string str)
     for(i = 0; commande != 0 && commande[i] != 0; i++ );
     effectuer(commande, i);
 }
+void Computer::undo()
+{
+    if(pileActuelle != 0)
+    {
+        pushHistorique(*pileActuelle, false);
+        pileActuelle = & ( popHistorique(true) );
+    }
+    else
+        throw Exception("Pas de pile");
+}
+void Computer::redo()
+{
+    if(pileActuelle != 0)
+    {
+        pushHistorique(*pileActuelle, true);
+        pileActuelle = & ( popHistorique(false) );
+    }
+    else
+        throw Exception("Pas de pile");
+}
 
 // Analyseur
+Analyseur::Analyseur(): atomes(* new ListeAtomes), operateurs()
+{
+    addOperateursCourants();
+}
+Analyseur::Analyseur(map<string,Operateur&> opSupp): atomes(* new ListeAtomes), operateurs()
+{
+    addOperateursCourants();
+    for(map<string,Operateur&>::const_iterator it = opSupp.begin(); it != opSupp.end(); it++)
+    {
+        if(operateurs.find(it->first) == operateurs.end())
+            operateurs.insert(  pair<string, Operateur&>(it->first, it->second));
+    }
+}
+void Analyseur::addOperateursCourants()
+{
+    addOperateur("DUP", * new Dupliquer);
+    addOperateur("DROP", * new Drop);
+    addOperateur("SWAP", * new Swap);
+    addOperateur("Clear", * new Clear);
+    addOperateur("+", * new Additionner);
+    addOperateur("-", * new Soustraire);
+    addOperateur("*", * new Multiplier);
+    addOperateur("/", * new Diviser);
+    addOperateur("NEG", * new Neg);
+    addOperateur("MOD", * new Mod);
+    addOperateur("DIV", * new Div);
+    addOperateur("UNDO", * new Undo);
+    addOperateur("REDO", * new Redo);
+    addOperateur("NUM", * new Num);
+    addOperateur("DEN", * new Den);
+    addOperateur("RE", * new Re);
+    addOperateur("IM", * new Im);
+    addOperateur("$", * new creerComplexe);
+    addOperateur("OR", * new Or);
+    addOperateur("NOT", * new Not);
+    addOperateur("=", * new Egal);
+    addOperateur("!=", * new Different);
+    addOperateur("=<", * new InfOuEgal);
+    addOperateur(">=", * new SupOuEgal);
+    addOperateur("<", * new Inferieur);
+    addOperateur(">", * new Superieur);
+    addOperateur("EVAL", * new Eval);
+    addOperateur("STO", * new Sto(this));
+}
 Litteral_numerique* Analyseur::evaluer(string str)
 {
     ConteneurOperande** commande = interpreter(str);
@@ -94,137 +162,12 @@ void Analyseur::effectuer(ConteneurOperande** exp, unsigned int nbOp, Computer &
         }
     }
 }
-Operateur* Analyseur::creerOperateur(string ID) {
-    if(ID == "DUP")
-    {
-        return (new Dupliquer);
-    }
-    else if(ID == "DROP")
-    {
-        return (new Drop);
-    }
-    else if(ID == "SWAP")
-    {
-        return (new Swap);
-    }
-    else if(ID == "CLEAR")
-    {
-        return (new Clear);
-    }
-    else if(ID == "+")
-    {
-        return (new Additionner);
-    }
-    else if(ID == "-")
-    {
-        return (new Soustraire);
-    }
-    else if(ID == "*")
-    {
-        return (new Multiplier);
-    }
-    else if(ID == "/")
-    {
-        return (new Diviser);
-    }
-    else if(ID == "NEG")
-    {
-        return (new Neg);
-    }
-    else if(ID == "MOD")
-    {
-        return (new Mod);
-    }
-    else if(ID == "DIV")
-    {
-        return (new Div);
-    }
-    else if(ID == "UNDO")
-    {
-        return (new Undo);
-    }
-    else if(ID == "REDO")
-    {
-        return (new Redo);
-    }
-    else if(ID == "NUM")
-    {
-        return (new Num);
-    }
-    else if(ID == "DEN")
-    {
-        return (new Den);
-    }
-    else if(ID == "RE")
-    {
-        return (new Re);
-    }
-    else if(ID == "IM")
-    {
-        return (new Im);
-    }
-   else if(ID == "$")
-    {
-        return (new creerComplexe);
-    }
-   else if(ID == "AND")
-    {
-        return (new And);
-    }
-   else if(ID == "OR")
-    {
-        return (new Or);
-    }
-   else if(ID == "NOT")
-    {
-        return (new Not);
-    }
-   else if(ID == "=")
-    {
-        return (new Egal);
-    }
-   else if(ID == "!=")
-    {
-        return (new Different);
-    }
-   else if(ID == "=<")
-    {
-        return (new InfOuEgal);
-    }
-   else if(ID == ">=")
-    {
-        return (new SupOuEgal);
-    }
-   else if(ID == "<")
-    {
-        return (new Inferieur);
-    }
-   else if(ID == ">")
-    {
-        return (new Superieur);
-    }
-
-/*
-    else if(ID == "LASTOP")
-    {
-        return (new Lastop);
-    }
-    else if(ID == "LASTARGS")
-    {
-        return (new Lastargs);
-    }*/
-    else if(ID == "EVAL")
-    {
-        return (new Eval);
-    }
-    else if(ID == "STO")
-    {
-        return (new Sto(this));
-    }
+Operateur* Analyseur::creerOperateur(string ID)
+{
+    if(operateurs.find(ID) != operateurs.end())
+        return &(operateurs.find(ID)->second);
     else
-    {
-        return operateurSupplementaire(ID);
-    }
+        return 0;
 }
 
 Litteral_numerique* Analyseur::evaluer(ConteneurOperande** exp, unsigned int taille)
@@ -488,13 +431,12 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
 
         if(commande[i]== cProg1 ) {prog++; programme = false;}
         else if(commande[i]== cProg2 && prog==0 ) programme = true;
+        else if(commande[i]== cExp && programme == true && expression == true) expression = false;
+        else if(commande[i]== cExp && programme == true && expression == false) expression = true;
 
-        if(commande[i]== cExp && expression == true) expression = false;
-        else if(commande[i]== cExp && expression == false) expression = true;
-
-        if(commande[i]==cEsp && expression == true && programme == true)
+        if(commande[i]==cEsp && (expression == true || programme == true))
         {
-        occEsp++;
+            occEsp++;
         }
 
     }
@@ -575,13 +517,15 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
 
 
     }
+
     //cout << "Test :  \n";
-    /*for(unsigned int t=0; t < occtab; t++){
+    /*
+    for(unsigned int t=0; t < occtab; t++){
 
         cout<< "Operande " << t+1 << " = " << tab[t] << "\n";
-    }*/
+    } */
 
-    ConteneurOperande **newtab = new ConteneurOperande*[occtab+1];
+    ConteneurOperande **newtab = new ConteneurOperande*[2*occtab+1];
     //cout << "Nombre d'operande :" << occtab << "\n";
     //On a tab qui contient les Operande en string maintenant nous allons Implementer le tableau d'operande.
 
@@ -592,8 +536,8 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
     int quote;
     int crochet;
     int alphabet;
+    int numOp2 = 0;
     for(numOp=0; numOp < occtab; numOp++ ){
-
 
         slash = tab[numOp].find_first_of("\/");
         point = tab[numOp].find_first_of("\.");
@@ -606,15 +550,13 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
         for(char i='a'; i <= 'z'; i++)
             alphabet += tab[numOp].find_first_of(i);
         Operateur* Op = creerOperateur(tab[numOp]);
-        if(Op)
+        if(Op != 0)
         {
-
                 ConteneurOperande *oP = new ConteneurOperande(*Op);
-                newtab[numOp] = oP;
+                newtab[numOp2] = oP;
         }
         else
         {
-            cout << tab[numOp];
             //Si c'est un entier
             if(alphabet<0&&slash ==-1&&point==-1&&dollar==-1&&quote==-1&&crochet==-1)
             {
@@ -622,7 +564,7 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
                 Forme_fraction *frac2 = creerUneLitteraleEntiere("0");
                 Litteral_numerique *Lit = new Litteral_numerique(*frac1, *frac2);
                 ConteneurOperande *cL = new ConteneurOperande(*Lit);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
 
             }
             //SI c'est un rationelle
@@ -631,7 +573,7 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
                 Forme_fraction *reel2 = creerUneLitteraleRationelle("0/1");
                 Litteral_numerique *Lit = new Litteral_numerique(*reel1, *reel2);
                 ConteneurOperande *cL = new ConteneurOperande(*Lit);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
 
             }
             //Si c'est un réel
@@ -640,7 +582,7 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
                 Forme_decimale *dec2 = creerUneLitteraleReel("0.0");
                 Litteral_numerique *Lit = new Litteral_numerique(*dec1, *dec2);
                 ConteneurOperande *cL= new ConteneurOperande(*Lit);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
 
             }
             //SI c'est un Complexe
@@ -650,25 +592,24 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
                 Litteral_numerique *Lit = creerUneLitteraleComplexe(tab[numOp]);
 
                 ConteneurOperande *cL= new ConteneurOperande(*Lit);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
+            }
+            // SI c'est un programme
+            else if(crochet != -1){
+
+                tab[numOp].erase(0,1);
+                tab[numOp].erase(tab[numOp].size() - 2);
+                Litteral_programme *prog = new Litteral_programme(tab[numOp]);
+                ConteneurOperande *cL = new ConteneurOperande(*prog);
+                newtab[numOp2] = cL;
             }
             //Si c'est une Expression
-            else if(quote != -1 && crochet == -1){
+            else if(quote != -1){
                 tab[numOp].erase(0,1);
                 tab[numOp].erase(tab[numOp].size() - 1);
                 Litteral_expression *exp = new Litteral_expression(tab[numOp]);
                 ConteneurOperande *cL = new ConteneurOperande(*exp);
-                newtab[numOp] = cL;
-            }
-            // SI c'est un programme
-            else if(quote == -1 && crochet != -1){
-
-                tab[numOp].erase(0,1);
-                tab[numOp].erase(tab[numOp].size() - 2);
-                cout << tab[numOp];
-                Litteral_programme *prog = new Litteral_programme(tab[numOp]);
-                ConteneurOperande *cL = new ConteneurOperande(*prog);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
             }
             else
             {
@@ -677,26 +618,26 @@ ConteneurOperande** Analyseur::interpreter(const string &commande) {
                 {
                     Litteral_expression *exp = new Litteral_expression(tab[numOp]);
                     ConteneurOperande *cL = new ConteneurOperande(*exp);
-                    newtab[numOp] = cL;
+                    newtab[numOp2] = cL;
                 }
-                else if(existenceAtome == prog)
+                else if(existenceAtome == progg)
                 {
-                    ConteneurOperande** ops = atomes.interpreter(tab[numOp]);
-                    newtab[numOp] = ops[0];
-//                    numOp++;
-  //                  newtab[numOp] = ops[1];
+                    ConteneurOperande* ops = atomes.interpreter(tab[numOp]);
+                    newtab[numOp2] = ops;
+                    numOp2++;
+                    newtab[numOp2] =  new ConteneurOperande(* new Eval());
                 }
                 else
                 {
-                    ConteneurOperande** ops = atomes.interpreter(tab[numOp]);
-                    newtab[numOp] = ops[0];
+                    ConteneurOperande* ops = atomes.interpreter(tab[numOp]);
+                    newtab[numOp2] = ops;
                 }
             }
 //      throw ExceptionLitteral("Syntaxe invalide");
 
         }
+            numOp2++;
     }
-       // unsigned int nbOperande = occtab;
-        newtab[occtab] = 0;
+        newtab[numOp2] = 0;
         return newtab;
     }

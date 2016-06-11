@@ -113,9 +113,9 @@ ostream& operator<<(ostream& f, const Reel& reel)
 // METHODES LITTERALE EXPRESSIOn
 Litteral* Litteral_expression::eval(Computer &c) const
 {
-    cout << "eval";
     string new_exp = toRPN(exp);
     Litteral* Res = c.getAnalyseur().evaluer(new_exp);
+    c.popHistorique(true);
     if(Res != 0)
         return  Res;
     else
@@ -334,6 +334,7 @@ Litteral* Litteral_programme::eval(Computer &c) const
     try
     {
         c.effectuer(commande);
+        c.popHistorique(true);
         return 0;
     }
     catch(Exception e)

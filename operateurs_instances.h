@@ -443,14 +443,16 @@ class Lastargs : public Operateur
 class Undo : public Operateur
 {
     public:
-        Pile& operation(const Pile& P);
+        Pile& operation(const Pile& P) {}
+        void appliquer(Computer& c) { c.popHistorique(true);  c.undo(); }
 };
-
 class Redo : public Operateur
 {
     public:
-        Pile& operation(const Pile& P);
+        Pile& operation(const Pile& P) { }
+        void appliquer(Computer& c) { c.popHistorique(true);  c.redo(); }
 };
+
 
 class And : public OperateurNumerique
 {

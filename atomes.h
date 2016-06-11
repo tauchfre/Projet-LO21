@@ -5,7 +5,7 @@
 #include <map>
 using namespace std;
 
-enum TypeAtome{var,prog,NIL};
+enum TypeAtome{var,progg,NIL};
 class ListeAtomes
 {
     private:
@@ -15,6 +15,6 @@ class ListeAtomes
         TypeAtome atomeExiste(string str);
         Litteral& traduireAtome(string str);
         void ajouterAtome(string key, const Litteral& L);
-        ConteneurOperande** interpreter(string str);
+        ConteneurOperande* interpreter(string str);
 };
 #endif // ATOMES_H_INCLUDED

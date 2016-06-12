@@ -1,6 +1,6 @@
 #include "litteraux.h"
 #include "analyseur.h"
-#include <QTextStream>
+#include <iostream>
 #include <stack>
 #include <sstream>
 #include <typeinfo>
@@ -75,7 +75,10 @@ Reel& Reel::operator/(const Reel& terme) const
 Forme_fraction& Forme_fraction::fraction_simple() const
 {
     int pgcd = PGCD(numerateur, denominateur);
-    return *(new Forme_fraction(numerateur / pgcd, denominateur / pgcd));
+    if(pgcd*denominateur < 0)
+        return *(new Forme_fraction(-numerateur / pgcd, -denominateur / pgcd));
+    else
+        return *(new Forme_fraction(numerateur / pgcd, denominateur / pgcd));
 }
 bool operator==(const Forme_fraction &f1, const Forme_fraction &f2)
 {
@@ -90,7 +93,6 @@ bool operator!=(const Forme_fraction& f1, const Forme_fraction& f2)
 
 // Methodes sur les litteraux calculables
 
-
 ostream& Litteral_numerique::concat(ostream& f) const
 {
     if(0==partie_imaginaire.getValeur())
@@ -102,10 +104,6 @@ ostream& Litteral_numerique::concat(ostream& f) const
     else
         return f << partie_reele << " - " << partie_imaginaire.negatif() << "i";
 }
-
-
-
-
 ostream& operator<<(ostream& f, const Litteral& L)
 {
     return L.concat(f);
@@ -118,7 +116,7 @@ ostream& operator<<(ostream& f, const Reel& reel)
 // METHODES LITTERALE EXPRESSIOn
 Litteral* Litteral_expression::eval(Computer &c) const
 {
-    QString new_exp = toRPN(exp);
+    string new_exp = toRPN(exp);
     Litteral* Res = c.getAnalyseur().evaluer(new_exp);
     if(Res != 0)
         return  Res;
@@ -129,9 +127,9 @@ Litteral_calculable& Litteral_calculable::operator/(const Litteral_calculable& L
 {
     if(getType() == expression || L.getType() == expression)
     {
-        QTextStream os;
+        ostringstream os;
         os << "(" << this->toStr() << ")/(" << L.toStr() << ")";
-        return * ( new Litteral_expression(os.readLine()));
+        return * ( new Litteral_expression(os.str()));
     }
     else
     {
@@ -152,9 +150,9 @@ Litteral_calculable& Litteral_calculable::operator+(const Litteral_calculable& L
 {
     if(getType() == expression || L.getType() == expression)
     {
-        QTextStream os;
+        ostringstream os;
         os << "(" << this->toStr() << ")+(" << L.toStr() << ")";
-        return * ( new Litteral_expression(os.readLine()));
+        return * ( new Litteral_expression(os.str()));
     }
     else
     {
@@ -176,9 +174,9 @@ Litteral_calculable& Litteral_calculable::operator-(const Litteral_calculable& L
 {
     if(getType() == expression || L.getType() == expression)
     {
-        QTextStream os;
+        ostringstream os;
         os << "(" << this->toStr() << ")-(" << L.toStr() << ")";
-        return * ( new Litteral_expression(os.readLine()));
+        return * ( new Litteral_expression(os.str()));
     }
     else
     {
@@ -200,9 +198,9 @@ Litteral_calculable& Litteral_calculable::operator*(const Litteral_calculable& L
 {
     if(getType() == expression || L.getType() == expression)
     {
-        QTextStream os;
+        ostringstream os;
         os << "(" << this->toStr() << ")*(" << L.toStr() << ")";
-        return * ( new Litteral_expression(os.readLine()));
+        return * ( new Litteral_expression(os.str()));
     }
     else
     {
@@ -226,19 +224,21 @@ Litteral& Litteral_expression::copie() const
 }
 
 
-QString toRPN(QString exp) // Exp sans espace => expression en RPN; tout chaine inconnue est transformée en littérale
+string toRPN(string exp) // Exp sans espace => expression en RPN; tout chaine inconnue est transformée en littérale
 {
     bool analysingLitteral = false,analysingOpUnaire = false;
-    QString *str= new QString[50];
-    QString carac;
-    QString lastcarac = "";
-    QString opUnaire = "";
+    string *str= new string[50];
+    string carac;
+    string lastcarac = "";
+    string opUnaire = "";
     int nbStr=0, j=0;
-    for(int i =0; i < exp.size(); i++) // Cette boucle transforme une expression en une suite de QString
+    for(int i =0; i < exp.size(); i++) // Cette boucle transforme une expression en une suite de string
     {
         carac = "";
-        if(exp[i] != ' ')
+        if(exp[i] != ' ' && exp[i] != ',')
             carac.push_back(exp[i]);
+        else if(exp[i] == ',')
+            analysingLitteral = false;
 
         if(carac == "(" && analysingOpUnaire)
         {
@@ -248,7 +248,7 @@ QString toRPN(QString exp) // Exp sans espace => expression en RPN; tout chaine 
             opUnaire = "";
             analysingOpUnaire = false;
         }
-        else if(exp[i]>='A' && exp[i]<='Z')
+        else if((int)exp[i]>=(int)'A' && (int)exp[i]<=(int)'Z')
         {
             opUnaire += carac;
             analysingOpUnaire = true;
@@ -286,17 +286,17 @@ QString toRPN(QString exp) // Exp sans espace => expression en RPN; tout chaine 
             lastcarac.push_back(exp[i]);
         }
     }
-    QString output = "";
-    stack<QString> opstack;
-    for(j = 0; j < nbStr; j++) // cette boucle analyse une suite de QString formée de litterales et d'opérateurs
+    string output = "";
+    stack<string> opstack;
+    for(j = 0; j < nbStr; j++) // cette boucle analyse une suite de string formée de litterales et d'opérateurs
     {
-        if(str[j] == "*" || str[j] == "/" || str[j] == "(" || (str[j][0] <= 'Z' && str[j][0] >= 'A' && *str[j].begin() == '('))
+        if(str[j] == "*" || str[j] == "/" || str[j] == "(" || (str[j][0] <= 'Z' && str[j][0] >= 'A' && *str[j].rbegin() == '('))
         {
             opstack.push(str[j]);
         }
         else if(str[j] == "-" || str[j] == "+")
         {
-            while(!opstack.empty() && opstack.top() != "(" && !( opstack.top()[0] <= 'Z' && opstack.top()[0] >= 'A' && *opstack.top().begin() == '('))
+            while(!opstack.empty() && opstack.top() != "(" && !( opstack.top()[0] <= 'Z' && opstack.top()[0] >= 'A' && *opstack.top().rbegin() == '('))
                {
                 output  += opstack.top() + " ";
                 opstack.pop();
@@ -305,7 +305,7 @@ QString toRPN(QString exp) // Exp sans espace => expression en RPN; tout chaine 
         }
         else if(str[j] == ")")
         {
-            while(!opstack.empty() && opstack.top() != "("  && !( opstack.top()[0] <= 'Z' && opstack.top()[0] >= 'A' && *opstack.top().begin() == '('))
+            while(!opstack.empty() && opstack.top() != "("  && !( opstack.top()[0] <= 'Z' && opstack.top()[0] >= 'A' && *opstack.top().rbegin() == '('))
             {
                 output  += opstack.top() + " ";
                 opstack.pop();
@@ -314,7 +314,7 @@ QString toRPN(QString exp) // Exp sans espace => expression en RPN; tout chaine 
                 opstack.pop();
             else if(!opstack.empty())
             {
-                output += opstack.top().remove(opstack.top().size() - 1) + " ";
+                output += opstack.top().erase(opstack.top().size() - 1) + " ";
                 opstack.pop();
             }
         }
@@ -328,7 +328,7 @@ QString toRPN(QString exp) // Exp sans espace => expression en RPN; tout chaine 
         output  += opstack.top() + " ";
         opstack.pop();
     }
-    output.remove(output.size() - 1);
+    output.erase(output.size() - 1);
     return output;
 
 }
@@ -338,6 +338,7 @@ Litteral* Litteral_programme::eval(Computer &c) const
     try
     {
         c.effectuer(commande);
+        c.popHistorique(true);
         return 0;
     }
     catch(Exception e)

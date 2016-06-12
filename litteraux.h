@@ -2,9 +2,10 @@
 #define LITTERAUX_H_INCLUDED
 
 
-#include <iostream>
+#include <QTextStream>
 #include <sstream>
-#include <cstring>
+#include <QString>
+#include <QDebug>
 
 using namespace std;
 // GESTION DES EXCEPTION
@@ -12,11 +13,11 @@ using namespace std;
 class Exception
 {
     protected:
-        string erreur;
+        QString erreur;
     public:
-        Exception(const char* err) : erreur((string)err) {}
-        Exception(string err) : erreur(err) {}
-        virtual  void afficher() { cout << erreur; }
+        Exception(const char* err) : erreur((QString)err) {}
+        Exception(QString err) : erreur(err) {}
+        virtual  void afficher() { qDebug() << erreur; }
 };
 
 enum ErrLitteral{calculImpossible,autreErreurLitterale};
@@ -26,7 +27,7 @@ class ExceptionLitteral : public Exception
         ErrLitteral id_erreur;
     public:
         ExceptionLitteral(const char* err, ErrLitteral idErr=autreErreurLitterale) :  Exception(err), id_erreur(idErr) {}
-        void afficher() { cout << "Erreur avec les littéraux :" << erreur; }
+        void afficher() { qDebug() << "Erreur avec les litt?raux :" << erreur; }
 };
 
 
@@ -39,20 +40,20 @@ class Reel
         TypeReel type;
     public:
         Reel(TypeReel T) : type(T) {}
-        // On définit une concaténation avec un flux ostream&
+        // On d?finit une concat?nation avec un flux QTextStream&
         virtual ostream& concat(ostream& f) const=0;
 
         virtual Reel& operator+(const Reel& terme) const;
         virtual Reel& operator-(const Reel& terme) const;
         virtual Reel& operator*(const Reel& terme) const;
         virtual Reel& operator/(const Reel& terme) const;
-        virtual Reel& negatif() const { throw ExceptionLitteral("Pas de négation définie pour ce type de Réel"); }
+        virtual Reel& negatif() const { throw ExceptionLitteral("Pas de n?gation d?finie pour ce type de R?el"); }
 
 
-        // On définit une fonction qui permet d'obtenir une valeur flottante du réel
+        // On d?finit une fonction qui permet d'obtenir une valeur flottante du r?el
         virtual float getValeur() const = 0;
 
-        // On définit des opérations par défaut basées sur cette valeur flottante
+        // On d?finit des op?rations par d?faut bas?es sur cette valeur flottante
         virtual bool operator==(const Reel& R) const
         {
             return R.getValeur() == (*this).getValeur();
@@ -103,9 +104,9 @@ class Litteral
 {
     public:
         virtual Litteral* eval(Computer& c) const = 0;
-        virtual ostream& concat(ostream& f) const { throw ExceptionLitteral("Pas de concat pour ce littéral"); }
+        virtual ostream& concat(ostream& f) const { throw ExceptionLitteral("Pas de concat pour ce litt?ral"); }
         virtual Litteral& copie() const = 0;
-        virtual string toStr() const = 0;
+        virtual QString toStr() const = 0;
 };
 
 enum TypeLCalculable {expression, numerique};
@@ -121,25 +122,26 @@ class Litteral_calculable : public Litteral
         virtual Litteral_calculable& operator*(const Litteral_calculable& L) const;
         virtual Litteral_calculable& operator/(const Litteral_calculable& L) const;
         virtual TypeLCalculable getType() const {return type;};
-        virtual string toStr() const = 0;
+        virtual QString toStr() const = 0;
 };
 
 // GESTION DES LITTERAUX NUMERIQUES
 class Litteral_expression : public Litteral_calculable
 {
     private:
-        string exp;
+        QString exp;
     public:
         Litteral_expression(const char* str) : exp(str), Litteral_calculable(expression) {  }
-        Litteral_expression(string str) : exp(str), Litteral_calculable(expression) {  }
+        Litteral_expression(QString str) : exp(str), Litteral_calculable(expression) {  }
         virtual bool isExpression() const { return true; }
         Litteral& copie() const;
-        ostream& concat(ostream& f) const { return (f << "'" << exp << "'");}
-//        string toStr() const { return exp; }
-        string toStr() const { ostringstream stream; stream << exp; return stream.str(); }
+        ostream& concat(ostream& f) const { return (f << "'" << exp.toStdString() << "'");}
+//        QString toStr() const { return exp; }
+        QString toStr() const { ostringstream stream; stream << exp.toStdString(); return QString::fromStdString(stream.str()); }
 
         Litteral* eval(Computer& c) const;
 };
+
 class Litteral_numerique : public Litteral_calculable
 {
     private:
@@ -147,39 +149,38 @@ class Litteral_numerique : public Litteral_calculable
         Reel& partie_imaginaire;
     public:
         Litteral_numerique(Reel& re, Reel& im) : partie_reele(re), partie_imaginaire(im), Litteral_calculable(numerique) {}
-        Litteral_numerique(float re, float im=0)
-        : partie_reele(*(new Forme_decimale(re))), partie_imaginaire(*(new Forme_decimale(im))), Litteral_calculable(numerique){}
+        Litteral_numerique(float re, float im=0): partie_reele(*(new Forme_decimale(re))), partie_imaginaire(*(new Forme_decimale(im))), Litteral_calculable(numerique){}
         Litteral_numerique(const Litteral_numerique& L) : partie_reele(L.getRe()), partie_imaginaire(L.getIm()), Litteral_calculable(numerique) { }
-         // On redéfinit le constructeur de recopie car on traite des membres références. Celui ci utilise les constructeur de recopie des classes rééles et derivées de réeles
+         // On red?finit le constructeur de recopie car on traite des membres r?f?rences. Celui ci utilise les constructeur de recopie des classes r??les et deriv?es de r?eles
         Reel& getRe() const{return partie_reele;}
         Reel& getIm() const{return partie_imaginaire;}
         ostream& concat(ostream& f) const;
 
         Litteral* eval(Computer& c) const  { return &this->copie(); };
         virtual bool isExpression() const { return false; }
-        string toStr() const { ostringstream stream; partie_reele.concat(stream); if(partie_imaginaire != Forme_decimale(0)) { stream << "$"; partie_imaginaire.concat(stream); } return stream.str(); }
+        QString toStr() const { ostringstream stream; partie_reele.concat(stream); if(partie_imaginaire != Forme_decimale(0)) { stream << "$"; partie_imaginaire.concat(stream); } return QString::fromStdString(stream.str()); }
         Litteral& copie() const{ return * (new Litteral_numerique(*this));}
 };
 
 // GESTION DES LITTERAUX EXPRESSION
 
-string toRPN(string exp);
+QString toRPN(QString exp);
 class Litteral_programme : public Litteral
 {
     private:
-        string commande;
+        QString commande;
     public:
-        Litteral_programme(string com) : commande(com) {}
-        Litteral_programme(const char* com) : commande((string)com) {}
+        Litteral_programme(QString com) : commande(com) {}
+        Litteral_programme(const char* com) : commande((QString)com) {}
         Litteral* eval(Computer &c) const;
-        ostream& concat(ostream &f) const { return f << "[" << commande << "]"; }
-        string toStr() const {  return commande; }
+        ostream& concat(ostream &f) const { return f << "[" << commande.toStdString() << "]"; }
+        QString toStr() const {  return commande; }
         Litteral& copie() const{ return *(new Litteral_programme(*this)); }
 };
 class Litteral_atome : public Litteral
 {
     private:
-        string exp;
+        QString exp;
     public:
         Litteral_atome(const char* str) : exp(str) {  }
 };
@@ -191,5 +192,4 @@ ostream& operator<<(ostream& f, const Reel& reel);
 ostream& operator<<(ostream& f, const Litteral& L);
 
 
-void test();
 #endif // LITTERAUX_H_INCLUDED

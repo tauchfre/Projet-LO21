@@ -24,6 +24,7 @@ Litteral& Pile::pop()
         return *litteraux[taille];
     }
     else
+
         throw ExceptionPile("Pas d'élement à dépiler");
 
 

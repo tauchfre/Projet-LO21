@@ -15,7 +15,7 @@ QComputer::QComputer(QWidget* parent): QWidget(parent)
 
 
     menu->connect(parametre, SIGNAL(triggered(bool)), this , SLOT(open_parametre()));
-    menu->addMenu("Option")->addAction(parametre);
+    menu->addMenu("Paramètres")->addAction(parametre);
 
     menu->connect(variable, SIGNAL(triggered(bool)), this , SLOT(open_variable()));
     menu->addMenu("Gestion des Variables")->addAction(variable);
@@ -190,11 +190,7 @@ void QComputer::rafraichir(){
         os.clear();
         vuePile->item(computer->getNbAfficher()-1-nb,0)->setText(qs);
 
-
-
     }
-
-
 
 }
 
@@ -506,6 +502,16 @@ void QComputer::clicked_doll(){
 
     fenetreParametre::fenetreParametre(QWidget* parent): QWidget(parent)
     {
+        cb1 = new QCheckBox("Bip Sonore", this);
+        cb2 = new QCheckBox("Clavier Cliquable", this);
+        couche = new QVBoxLayout(this);
+        annuler = new QPushButton("Retour", this);
+        valider = new QPushButton("Valider", this);
+        couche->addWidget(cb1,0,0);
+        couche->addWidget(cb2,1,0);
+        couche->addWidget(valider,2,0);
+        couche->addWidget(annuler,3,0);
+        setLayout(couche);
 
 
 

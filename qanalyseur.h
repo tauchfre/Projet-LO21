@@ -15,6 +15,8 @@
 #include <QAction>
 #include<QDialog>
 #include<QEvent>
+#include<QCheckBox>
+
 
 
 
@@ -42,6 +44,7 @@ public slots:
 
 
 
+
 class fenetreProgramme : public QWidget{
 
     Q_OBJECT
@@ -65,11 +68,18 @@ public slots:
     void quit();
 };
 
+
+
 class fenetreParametre : public QWidget{
 
     Q_OBJECT
-
-
+    QCheckBox* cb1;
+    QCheckBox* cb2;
+    QVBoxLayout* couche;
+    QPushButton* annuler;
+    QPushButton* valider;
+    bool *bip;
+    bool *clavier;
 
 
 public:

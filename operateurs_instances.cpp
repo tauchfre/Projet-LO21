@@ -1,6 +1,5 @@
 #include "operateurs_instances.h"
 #include <sstream>
-#include <QTextStream>
 // OPERATIONS DES OPERATEURS
 Pile& Dupliquer::operation(const Pile& P)
 {
@@ -15,7 +14,7 @@ Pile& Dupliquer::operation(const Pile& P)
 Pile& Drop::operation(const Pile& P)
 {
     Pile &Res = * (new Pile(P));
-    Res.pop();
+    Litteral &L = Res.pop();
     return Res;
 }
 
@@ -31,15 +30,14 @@ Pile& Swap::operation(const Pile& P)
 }
 
 
-
 Pile& Clear::operation(const Pile& P)
 {
     Pile &Res = * (new Pile(P));
+    unsigned int i;
     while (Res.getTaille()>0)
     {
-        int taille = Res.getTaille();
         Res.pop();
-        Res.setTaille(taille-1);
+        Res.setTaille(Res.getTaille()-1);
 
     }
     return Res;
@@ -58,28 +56,8 @@ Pile& Lastargs::operation(const Pile& P)
 
     return Res;
 }
-/*
-void Undo::appliquer(Computer& c)
-{
 
-    Pile& PileRedo = c.getPileActuelle();
-    c.pushHistorique(PileRedo, false);
-    Pile& pileUndo = c.popHistorique(true);
-    c.setPileActuelle(pileUndo);
 
-}
-
-void Redo::appliquer(Computer& c)
-{
-
-    Pile& PileUndo = c.getPileActuelle();
-    c.pushHistorique(PileUndo, true);
-    Pile& pileRedo = c.popHistorique(false);
-    c.setPileActuelle(pileRedo);
-
-}
-
-*/
 /*Pile& OperateurNumerique::operation(const Pile &P)
 {
     Pile &Res = * (new Pile(P));
@@ -114,8 +92,9 @@ Pile& Sto::operation(const Pile &P)
         Litteral &L2 = ( (Res.pop()) );
         ostringstream os;
         os << L1;
+        cout << L1.toStr();
         if(os.str()[0] == '[')
-            getAnalyseur()->getAtomes().ajouterAtome(QString::fromStdString(os.str()),L2);
+            getAnalyseur()->getAtomes().ajouterAtome(os.str(),L2);
         else
             getAnalyseur()->getAtomes().ajouterAtome(L1.toStr(),L2);
         return Res;

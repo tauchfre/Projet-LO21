@@ -15,18 +15,27 @@ class ExceptionOperateur : public Exception
 
 class Computer;
 class Analyseur;
+
+/**
+ * ...\brief Classe abstraite de laquelle heritent les operateurs .
+ */
 class Operateur
 {
     protected:
         Analyseur* a;
+        bool estAnnulable;
     public:
-        Operateur(Analyseur* pt_analyseur=0) : a(pt_analyseur) {}
+        Operateur(Analyseur* pt_analyseur=0) : a(pt_analyseur), estAnnulable(true) {}
+        Operateur(bool B, Analyseur* pt_analyseur=0) : a(pt_analyseur), estAnnulable(B) {}
         Analyseur* getAnalyseur() const { return a; }
         void setAnalyseur(Analyseur& newA) { a = &newA; }
         virtual Pile& operation(const Pile& P) = 0;
         virtual void appliquer(Computer& PM); // TEMPLATE METHOD
 };
 
+/**
+ * ...\brief Classe abstraite de laquelle heritent les operateurs qui transforment <arite> Litteral_calculable en <1> Litteral_calculable.
+ */
 class OperateurNumerique : public  Operateur
 {
     private:
@@ -39,6 +48,9 @@ class OperateurNumerique : public  Operateur
 
 
 
+/**
+ * ...\brief Stocke indifferement une Litterale ou un Operateur dont on saura le type.
+ */
 class ConteneurOperande // Sert à exprimer des expression / suite d'opérandes
 {
     private:

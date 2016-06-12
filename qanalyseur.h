@@ -78,12 +78,12 @@ class fenetreParametre : public QWidget{
     QVBoxLayout* couche;
     QPushButton* annuler;
     QPushButton* valider;
-    bool *bip;
-    bool *clavier;
+    bool bbip;
+    bool bclavier;
 
 
 public:
-    explicit fenetreParametre(QWidget *parent = 0);
+    explicit fenetreParametre(QWidget *parent = 0, bool clavier = true, bool bip = true);
 
 public slots:
 
@@ -95,7 +95,8 @@ public slots:
 class QComputer : public QWidget{
 
     Q_OBJECT
-    QEvent *clavier;
+    bool clavier;
+    bool son;
     QMenuBar *menu;
     QAction *parametre;
     QAction *quitter;

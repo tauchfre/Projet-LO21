@@ -1,7 +1,7 @@
 #include "qanalyseur.h"
 #include "analyseur.h"
 
-QComputer::QComputer(QWidget* parent): QWidget(parent)
+QComputer::QComputer(QWidget* parent): QWidget(parent), clavier(true), son(true)
 {
 
     // Create the object pointed by the class attributes
@@ -170,6 +170,48 @@ QComputer::QComputer(QWidget* parent): QWidget(parent)
 void QComputer::rafraichir(){
     // the message
 
+    if(clavier == false){
+        b1->hide();
+        b2->hide();
+        b3->hide();
+        b4->hide();
+        b5->hide();
+        b6->hide();
+        b7->hide();
+        b8->hide();
+        b9->hide();
+
+        b0->hide();
+        additionner->hide();
+        soustraire->hide();
+        multiplier->hide();
+        diviser->hide();
+        point->hide();
+        dollar->hide();
+        entree->hide();
+    }
+
+    if(clavier == true){
+        b1->show();
+        b2->show();
+        b3->show();
+        b4->show();
+        b5->show();
+        b6->show();
+        b7->show();
+        b8->show();
+        b9->show();
+
+        b0->show();
+        additionner->show();
+        soustraire->show();
+        multiplier->show();
+        diviser->show();
+        point->show();
+        dollar->show();
+        entree->show();
+
+    }
     message->setText(computer->getAnalyseur().getMessage());
     int nb=0;
     // On vide la Pile de Qt
@@ -182,17 +224,25 @@ void QComputer::rafraichir(){
 
     ostringstream os;
     QString qs;
-      for(Pile::iterator it=computer->getPileActuelle().begin(); it!=computer->getPileActuelle().end() && nb<computer->getNbAfficher(); ++it, nb++)
+    int temp = computer->getPileActuelle().getTaille();
+      for(Pile::iterator it=computer->getPileActuelle().begin(); it!=computer->getPileActuelle().end() && nb<computer->getPileActuelle().getTaille(); ++it)
     {
+        if(temp > computer->getNbAfficher()){
+            temp--;
+        }
+        else{
         os<<(*it);
         qs = QString::fromStdString((os.str()));
         os.str("");
         os.clear();
         vuePile->item(computer->getNbAfficher()-1-nb,0)->setText(qs);
+         nb++;
+        }
 
     }
 
 }
+
 
 void QComputer::CommandeSuivante(){
     // On recupere le texte de la barre de commande 
@@ -334,7 +384,7 @@ void QComputer::clicked_doll(){
 
     void QComputer::open_parametre()
     {
-        fenParametre = new fenetreParametre;
+        fenParametre = new fenetreParametre(this, clavier, son);
         fenParametre->show();
     }
 
@@ -500,7 +550,7 @@ void QComputer::clicked_doll(){
     }
 
 
-    fenetreParametre::fenetreParametre(QWidget* parent): QWidget(parent)
+    fenetreParametre::fenetreParametre(QWidget* parent, bool clavier, bool bip): QWidget(parent), bbip(bip), bclavier(clavier)
     {
         cb1 = new QCheckBox("Bip Sonore", this);
         cb2 = new QCheckBox("Clavier Cliquable", this);
@@ -512,6 +562,7 @@ void QComputer::clicked_doll(){
         couche->addWidget(valider,2,0);
         couche->addWidget(annuler,3,0);
         setLayout(couche);
+
 
 
 

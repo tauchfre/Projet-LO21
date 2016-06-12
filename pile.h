@@ -6,29 +6,34 @@ class ExceptionPile: public Exception
 {
     public:
         ExceptionPile(const char* err) :  Exception(err) {}
-        void afficher() { cout << "Erreur avec une pile :" << erreur; }
+        void afficher() { qDebug() << "Erreur avec une pile :" << erreur; }
 };
 
-/**
- * ...\brief Stocke la pile de litterale du programme qui sera dans Computer...
- */
-class Pile
-{
+
+class Pile {
+
+
     private:
+
         Litteral** litteraux;
         int tailleMax;
         int taille;
     public:
-        Pile(int T = 50):litteraux(new Litteral*[T+1]),tailleMax(T),taille(0){}
+        Pile(int T = 50):litteraux(new Litteral*[T]),tailleMax(T),taille(0){}
         Pile(const Pile& P);
-        void afficher() const;
+        void afficher(QTextStream& f) const;
         void copierDans(Pile& P) const;
         void push(Litteral& L);
-        int getTailleMax() const { return tailleMax; }
+        int getTailleMax() const {
+            if (tailleMax > 0)return tailleMax;
+            else return 0;
+
+        }
         int getTaille() const { return taille; }
         void setTaille(int T) { taille = T; }
         Litteral& pop();
         Litteral& top() { return *litteraux[taille-1]; }
+
 
         class iterator {
             Litteral** current;
@@ -56,6 +61,9 @@ class Pile
         };
         const_iterator begin() const { return const_iterator(litteraux); }
         const_iterator end() const { return const_iterator(litteraux + taille); }
+
+
+
 
 };
 

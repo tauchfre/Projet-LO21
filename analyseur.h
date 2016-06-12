@@ -5,50 +5,46 @@
 #include "litteraux.h"
 #include "pile.h"
 #include "operateurs.h"
-#include <iostream>
-#include <string>
 
-using namespace std;
+#include <QString>
+#include <QTextStream>
+#include <QObject>
+#include <QDebug>
+#include "qanalyseur.h"
 
 
-/**
- * ...\brief Regroupe les operateurs et les fonctions de traitement.
- */
+
 class Analyseur
 {
     ListeAtomes& atomes;
-    map<string,Operateur&> operateurs;
+    QString message;
     public:
-        Analyseur();
-        Analyseur(map<string,Operateur&> opSupp);
 
+        void setMessage(const QString & mess){message = mess; }
+        QString getMessage(){return message;}
+        Analyseur() : atomes(* new ListeAtomes) {}
+        ListeAtomes& getAtomes() { return atomes; }
+        Litteral_numerique* evaluer(ConteneurOperande** exp, unsigned int taille);
+        Litteral_numerique* evaluer(QString str);
+        Operateur* creerOperateur(QString ID);
+        virtual Operateur* operateurSupplementaire(QString ID) { return 0; }
 
-        virtual Litteral_numerique* evaluer(ConteneurOperande** exp, unsigned int taille);
-        virtual Litteral_numerique* evaluer(string str);
-        virtual void effectuer(ConteneurOperande** exp, unsigned int nbOp, Computer &c);
+        void effectuer(ConteneurOperande** exp, unsigned int nbOp, Computer &c);
 
-        Operateur* creerOperateur(string ID);
-        void addOperateursCourants();
-        void addOperateur(string key, Operateur& op) { if(operateurs.find("key") == operateurs.end()) { operateurs.insert(  pair<string, Operateur&>(key,op)); }  }
+        ConteneurOperande** interpreter(const QString &commande);
+        Forme_fraction *creerUneLitteraleRationelle(const QString &s);
+        Forme_decimale *creerUneLitteraleReel(const QString &s);
+        Forme_fraction *creerUneLitteraleEntiere(const QString& s);
+        Litteral_numerique *creerUneLitteraleComplexe(const QString& s);
 
-        virtual ListeAtomes& getAtomes() { return atomes; }
-        map<string,Operateur&> getOperateurs() { return operateurs; }
-
-        virtual ConteneurOperande** interpreter(const string &commande);
-        Forme_fraction *creerUneLitteraleRationelle(const string &s);
-        Forme_decimale *creerUneLitteraleReel(const string &s);
-        Forme_fraction *creerUneLitteraleEntiere(const string& s);
-        Litteral_numerique *creerUneLitteraleComplexe(const string& s);
-        int *getNumEtDen(const string & fraction);
-        string *getReEtIm(const string & fraction);
-
+        int *getNumEtDen(const QString & fraction);
+        QString *getReEtIm(const QString & fraction);
 };
 
-/**
- * ...\brief Classe au coeur du projet qui gere la pile.
- */
-class Computer
+class Computer : public QObject
 {
+	Q_OBJECT
+
     private:
         Pile* pileActuelle;
         int maxHistorique;
@@ -57,29 +53,28 @@ class Computer
         int undoDisponible;
         Pile** historiqueRedo;
         int redoDisponible;
+        int nbAfficher;
+
+
+
 
     public:
-        Computer(int T=500): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T+1]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
-        Computer(map<string,Operateur&> opSupp, int T=500) : a(opSupp), pileActuelle(new Pile),historiqueUndo(new Pile*[T+1]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
+        Computer(int T=50): a(), pileActuelle(new Pile),historiqueUndo(new Pile*[T]), maxHistorique(T), historiqueRedo(new Pile*[T]),redoDisponible(0),undoDisponible(0) {}
         Pile& getPileActuelle() const { return *pileActuelle; }
         Litteral& pop();
         void push(Litteral& L);
-        void afficherPile() { if(pileActuelle != 0) pileActuelle->afficher();};
         void setPileActuelle(Pile &P) { pileActuelle = &P; }
-
-//        bool chargerFichier(string path);
-        bool chargerFichier(const char* path);
-        bool enregistrerFichier(const char* path);
-
         void pushHistorique(Pile& P, bool isUndo=true);
         Pile& popHistorique(bool isUndo=true);
-        void undo();
-        void redo();
-
         Analyseur& getAnalyseur() { return a; }
-
-        void effectuer(string commande); // Computer& c);
+        void setNbAfficher(int nb){nbAfficher = nb;}
+        int getNbAfficher(){return nbAfficher;}
+		
+        void effectuer(QString commande); // Computer& c);
         void effectuer(ConteneurOperande** exp, unsigned int nbOp);// Computer& c);
+		
+        signals:
+             void modificationEtat();
 
 };
 

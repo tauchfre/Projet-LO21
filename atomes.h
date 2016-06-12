@@ -5,38 +5,16 @@
 #include <map>
 using namespace std;
 
-enum TypeAtome{var,progg,NIL};
-
-/**
- * ...\brief Classe qui stocke les differents atome, instanciee une fois.
- */
+enum TypeAtome{var,prog,NIL};
 class ListeAtomes
 {
     private:
-        map<string,Litteral_calculable&> variables;
-        map<string,Litteral_programme&> programmes;
+        map<QString,Litteral_calculable&> variables;
+        map<QString,Litteral_programme&> programmes;
     public:
-        class iterator_var : public map<string,Litteral_calculable&>::iterator
-        {
-            public:
-                iterator_var(typename map<string,Litteral_calculable&>::iterator I) : map<string,Litteral_calculable&>::iterator(I) {}
-                void operator++() { map<string,Litteral_calculable&>::iterator::operator++(); }
-        };
-        iterator_var begin_var() { return iterator_var(variables.begin()); }
-        iterator_var end_var() { return iterator_var(variables.end()); }
-
-        class iterator_prog : public map<string,Litteral_programme&>::iterator
-        {
-            public:
-                iterator_prog(typename map<string,Litteral_programme&>::iterator I) : map<string,Litteral_programme&>::iterator(I) {}
-                void operator++() { map<string,Litteral_programme&>::iterator::operator++(); }
-        };
-        iterator_prog begin_prog() { return iterator_prog(programmes.begin()); }
-        iterator_prog end_prog() { return iterator_prog(programmes.end()); }
-
-        TypeAtome atomeExiste(string str);
-        Litteral& traduireAtome(string str);
-        void ajouterAtome(string key, const Litteral& L);
-        ConteneurOperande* interpreter(string str);
+        TypeAtome atomeExiste(QString str);
+        Litteral& traduireAtome(QString str);
+        void ajouterAtome(QString key, const Litteral& L);
+        ConteneurOperande** interpreter(QString str);
 };
 #endif // ATOMES_H_INCLUDED

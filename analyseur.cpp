@@ -1,9 +1,12 @@
 
 
 #include "analyseur.h"
-#include "operateurs_instances.h"
-#include <QTextStream>
+#include "atomes.h"
+#include <QtXml>
 #include <QString>
+#include "operateurs_instances.h"
+#include <iostream>
+#include <string>
 #include <cstdlib>
 
 // METHODE DE LA CLASSE OPERATEURFACTORY
@@ -11,14 +14,148 @@
 
 // METHODES DE LA CLASSE COMPUTER
 
+bool Computer::chargerFichier(const char* path)
+{
+        QDomDocument *dom = new QDomDocument("mon_xml");
+        QFile xml_doc(path);
+        if(!xml_doc.open(QIODevice::ReadOnly) && !xml_doc.open(QIODevice::ReadWrite) ) // si on peut pas read on readwrite (première ouverture)
+        {
+            cout << "Le fichier ne peut être ouvert";
+            return false;
+        }
+        else if (!dom->setContent(&xml_doc))
+        {
+                xml_doc.close();
+                cout << "Le fichier n'est pas correct";
+                return false;
+        }
+        else
+        {
+            QDomElement dom_elem = dom->documentElement();
+            for(QDomNode node = dom_elem.firstChild(); ! node.isNull(); node = node.nextSibling())
+            {
+                if(node.nodeName().toStdString() == (string) "atomes")
+                {
+                    for(QDomElement element = node.firstChildElement(); ! element.isNull(); element = element.nextSibling().toElement())
+                    {
+                        string tag = element.tagName().toStdString();
+                        string id = element.attribute("name").toStdString();
+                        string value = element.attribute("value").toStdString();
+                        if(tag == (string)"prog")
+                        {
+                            getAnalyseur().getAtomes().ajouterAtome(id, * new Litteral_programme(value));
+                        }
+                        if(tag == (string)"exp")
+                        {
+                            getAnalyseur().getAtomes().ajouterAtome(id, * new Litteral_expression(value));
+                        }
+                        if(tag == (string)"num")
+                        {
+                            getAnalyseur().getAtomes().ajouterAtome(id,  * getAnalyseur().evaluer(value));
+                        }
+                    }
+                }
+                if(node.nodeName().toStdString() == (string) "pile")
+                {
+                    for(QDomElement element = node.firstChildElement(); ! element.isNull(); element = element.nextSibling().toElement())
+                    {
+                        string tag = element.tagName().toStdString();
+                        string value = element.attribute("value").toStdString();
+
+                        if(tag == (string)"exp")
+                        {
+                            pileActuelle->push(* new Litteral_expression(value));
+                        }
+                       if(tag == (string)"prog")
+                        {
+                            pileActuelle->push(* new Litteral_programme(value));
+                        }
+                       if(tag == (string)"num")
+                       {
+                           pileActuelle->push( * getAnalyseur().evaluer(value)) ;
+                       }
+                    }
+                }
+            }
+            xml_doc.close();
+          //  pileActuelle->afficher();
+        }
+}
+bool Computer::enregistrerFichier(const char* path)
+{
+    QDomDocument *dom = new QDomDocument("mon_xml");
+    QFile xml_doc(path);
+    if(!xml_doc.open(QIODevice::WriteOnly) ) // si on peut pas read on readwrite (première ouverture)
+    {
+        cout << "Le fichier ne peut être ouvert";
+        return false;
+    }
+    else
+    {
+        QXmlStreamWriter xml_stream(&xml_doc);
+        xml_stream.writeStartDocument();
+        xml_stream.writeStartElement("etat_controleur");
+        xml_stream.writeStartElement("pile");
+        for(int i = pileActuelle->getTaille(); i >= 1; i--)
+        {
+            Litteral &L = pileActuelle->pop();
+            if(L.isCalculable() == true)
+            {
+                try
+                {
+                    Litteral_calculable &L_calc = dynamic_cast<Litteral_calculable&>(L);
+                    if(L_calc.getType() == expression )
+                        xml_stream.writeStartElement("exp");
+                    else if(L_calc.getType() == numerique)
+                        xml_stream.writeStartElement("num");
+                }
+                catch(bad_cast& e)
+                {
+                    throw(Exception("Littérale mal définie"));
+                }
+            }
+            else
+                xml_stream.writeStartElement("prog");
+            xml_stream.writeAttribute("value",L.toStr().c_str());
+            xml_stream.writeEndElement();
+
+        }
+        xml_stream.writeEndElement();
+        xml_stream.writeStartElement("atomes");
+        ListeAtomes &L_A = getAnalyseur().getAtomes();
+        for(ListeAtomes::iterator_var I = L_A.begin_var(); I != L_A.end_var(); ++I)
+        {
+            if(I->second.getType() == expression)
+                xml_stream.writeStartElement("exp");
+            else
+                xml_stream.writeStartElement("num");
+            xml_stream.writeAttribute("name",I->first.c_str());
+
+            xml_stream.writeAttribute("value",I->second.toStr().c_str());
+            xml_stream.writeEndElement();
+        }
+        for(ListeAtomes::iterator_prog I = L_A.begin_prog(); I != L_A.end_prog(); ++I)
+        {
+            xml_stream.writeStartElement("prog");
+            xml_stream.writeAttribute("name",I->first.c_str());
+            xml_stream.writeAttribute("value",I->second.toStr().c_str());
+            xml_stream.writeEndElement();
+        }
+        xml_stream.writeEndElement();
+        xml_stream.writeEndElement();
+
+        xml_stream.writeEndDocument();
+        xml_doc.close();
+    }
+}
 void Computer::pushHistorique(Pile& P, bool isUndo)
 {
-    if(isUndo && undoDisponible < maxHistorique)
+    if(isUndo==true && undoDisponible < maxHistorique)
     {
         historiqueUndo[undoDisponible] = &P;
         undoDisponible++;
     }
-    else if(!isUndo && redoDisponible < maxHistorique)
+    else if(isUndo==false && redoDisponible < maxHistorique)
     {
         historiqueRedo[redoDisponible] = &P;
         redoDisponible++;
@@ -38,7 +175,7 @@ Pile& Computer::popHistorique(bool isUndo)
     else if(!isUndo && redoDisponible > 0)
     {
         redoDisponible--;
-        return * (historiqueUndo[redoDisponible]);
+        return * (historiqueRedo[redoDisponible]);
     }
     else
     {
@@ -48,39 +185,105 @@ Pile& Computer::popHistorique(bool isUndo)
 
 Litteral& Computer::pop()
 {
+    return pileActuelle->pop(); /*
      pushHistorique(*pileActuelle, true);
      Pile newP(*pileActuelle);
      Litteral &res = newP.pop();
      pileActuelle = &newP;
-
-     return res;
+     return res; */
 }
 void Computer::push(Litteral& L)
 {
-     pushHistorique(*pileActuelle, true);
-     Pile *newP = new Pile(*pileActuelle);
-     newP->push(L);
-     pileActuelle = newP;
-
+    pileActuelle->push(L);
+   //  newP->push(L);
+    // pileActuelle = newP;
 }
 void Computer::effectuer(ConteneurOperande** exp, unsigned int nbOp)
 {
+    int before = redoDisponible;
+    pushHistorique(*pileActuelle, true);
+    Pile *newP = new Pile(*pileActuelle);
+    pileActuelle = newP;
     a.effectuer(exp,nbOp,*this);
+    int after = redoDisponible;
+    if(after == before) // Si c'est le cas alors on a pas fait d'undo ni de redo : on remet les redo a 0
+        redoDisponible = 0;
 }
-void Computer::effectuer(QString str)
+void Computer::effectuer(string str)
 {
-
     ConteneurOperande** commande = a.interpreter(str);
-
     unsigned int i;
     for(i = 0; commande != 0 && commande[i] != 0; i++ );
     effectuer(commande, i);
-
-    modificationEtat();
+}
+void Computer::undo()
+{
+    if(pileActuelle != 0)
+    {
+        pushHistorique(*pileActuelle, false);
+        pileActuelle = & ( popHistorique(true) );
+    }
+    else
+        throw Exception("Pas de pile");
+}
+void Computer::redo()
+{
+    if(pileActuelle != 0)
+    {
+        pushHistorique(*pileActuelle, true);
+        pileActuelle = & ( popHistorique(false) );
+    }
+    else
+        throw Exception("Pas de pile");
 }
 
 // Analyseur
-Litteral_numerique* Analyseur::evaluer(QString str)
+Analyseur::Analyseur(): atomes(* new ListeAtomes), operateurs()
+{
+    addOperateursCourants();
+}
+Analyseur::Analyseur(map<string,Operateur&> opSupp): atomes(* new ListeAtomes), operateurs()
+{
+    addOperateursCourants();
+    for(map<string,Operateur&>::const_iterator it = opSupp.begin(); it != opSupp.end(); it++)
+    {
+        if(operateurs.find(it->first) == operateurs.end())
+            operateurs.insert(  pair<string, Operateur&>(it->first, it->second));
+    }
+}
+void Analyseur::addOperateursCourants()
+{
+    addOperateur("DUP", * new Dupliquer);
+    addOperateur("DROP", * new Drop);
+    addOperateur("SWAP", * new Swap);
+    addOperateur("CLEAR", * new Clear);
+    addOperateur("Clear", * new Clear);
+    addOperateur("+", * new Additionner);
+    addOperateur("-", * new Soustraire);
+    addOperateur("*", * new Multiplier);
+    addOperateur("/", * new Diviser);
+    addOperateur("NEG", * new Neg(this));
+    addOperateur("MOD", * new Mod(this));
+    addOperateur("DIV", * new Div(this));
+    addOperateur("UNDO", * new Undo);
+    addOperateur("REDO", * new Redo);
+    addOperateur("NUM", * new Num(this));
+    addOperateur("DEN", * new Den(this));
+    addOperateur("RE", * new Re(this));
+    addOperateur("IM", * new Im(this));
+    addOperateur("$", * new creerComplexe(this));
+    addOperateur("OR", * new Or(this));
+    addOperateur("NOT", * new Not(this));
+    addOperateur("=", * new Egal(this));
+    addOperateur("!=", * new Different(this));
+    addOperateur("=<", * new InfOuEgal(this));
+    addOperateur(">=", * new SupOuEgal(this));
+    addOperateur("<", * new Inferieur(this));
+    addOperateur(">", * new Superieur(this));
+    addOperateur("EVAL", * new Eval(this));
+    addOperateur("STO", * new Sto(this));
+}
+Litteral_numerique* Analyseur::evaluer(string str)
 {
     ConteneurOperande** commande = interpreter(str);
     unsigned int i;
@@ -100,138 +303,12 @@ void Analyseur::effectuer(ConteneurOperande** exp, unsigned int nbOp, Computer &
         }
     }
 }
-
-Operateur* Analyseur::creerOperateur(QString ID) {
-    if(ID == "DUP")
-    {
-        return (new Dupliquer);
-    }
-    else if(ID == "DROP")
-    {
-        return (new Drop);
-    }
-    else if(ID == "SWAP")
-    {
-        return (new Swap);
-    }
-    else if(ID == "CLEAR")
-    {
-        return (new Clear);
-    }
-    else if(ID == "+")
-    {
-        return (new Additionner);
-    }
-    else if(ID == "-")
-    {
-        return (new Soustraire);
-    }
-    else if(ID == "*")
-    {
-        return (new Multiplier);
-    }
-    else if(ID == "\/")
-    {
-        return (new Diviser);
-    }
-    else if(ID == "NEG")
-    {
-        return (new Neg);
-    }
-    else if(ID == "MOD")
-    {
-        return (new Mod);
-    }
-    else if(ID == "DIV")
-    {
-        return (new Div);
-    }
-   /* else if(ID == "UNDO")
-    {
-        return (new Undo);
-    }
-    else if(ID == "REDO")
-    {
-        return (new Redo);
-    }*/
-    else if(ID == "NUM")
-    {
-        return (new Num);
-    }
-    else if(ID == "DEN")
-    {
-        return (new Den);
-    }
-    else if(ID == "RE")
-    {
-        return (new Re);
-    }
-    else if(ID == "IM")
-    {
-        return (new Im);
-    }
-   else if(ID == "\$")
-    {
-        return (new creerComplexe);
-    }
-   else if(ID == "AND")
-    {
-        return (new And);
-    }
-   else if(ID == "OR")
-    {
-        return (new Or);
-    }
-   else if(ID == "NOT")
-    {
-        return (new Not);
-    }
-   else if(ID == "=")
-    {
-        return (new Egal);
-    }
-   else if(ID == "!=")
-    {
-        return (new Different);
-    }
-   else if(ID == "=<")
-    {
-        return (new InfOuEgal);
-    }
-   else if(ID == ">=")
-    {
-        return (new SupOuEgal);
-    }
-   else if(ID == "<")
-    {
-        return (new Inferieur);
-    }
-   else if(ID == ">")
-    {
-        return (new Superieur);
-    }
-
-/*
-    else if(ID == "LASTOP")
-    {
-        return (new Lastop);
-    }
-    else if(ID == "LASTARGS")
-    {
-        return (new Lastargs);
-    }*/
-    else if(ID == "EVAL")
-    {
-        return (new Eval);
-    }
-    else if(ID == "STO")
-    {
-        return (new Sto(this));
-    }
+Operateur* Analyseur::creerOperateur(string ID)
+{
+    if(operateurs.find(ID) != operateurs.end())
+        return &(operateurs.find(ID)->second);
     else
-    {
-        return operateurSupplementaire(ID);
-    }
+        return 0;
 }
 
 Litteral_numerique* Analyseur::evaluer(ConteneurOperande** exp, unsigned int taille)
@@ -263,20 +340,20 @@ Litteral_numerique* Analyseur::evaluer(ConteneurOperande** exp, unsigned int tai
     }
 }
 
-Forme_fraction *Analyseur::creerUneLitteraleRationelle(const QString &s){
+Forme_fraction *Analyseur::creerUneLitteraleRationelle(const string &s){
 
-    int place;
-    QString slash = "\/";
-    place = s.indexOf(slash);
+    size_t place;
+    place = s.find_first_of("\/");
     if(place != -1)
     {
-    QString numerateur;
-    QString denominateur;
+    string numerateur;
+    string denominateur;
 
-    numerateur = s.mid(0, place);
-    denominateur = s.mid(place+1);
+    numerateur = s.substr(0, place);
+    denominateur = s.substr(place+1);
 
-    int i;
+
+    unsigned int i;
     bool pnum = true;
     bool pden = true;
 
@@ -306,21 +383,21 @@ Forme_fraction *Analyseur::creerUneLitteraleRationelle(const QString &s){
     }
 
 }
-Forme_decimale *Analyseur::creerUneLitteraleReel(const QString &s){
-    int place;
+Forme_decimale *Analyseur::creerUneLitteraleReel(const string &s){
+    size_t place;
 
-    place = s.indexOf("\.");
+    place = s.find_first_of("\.");
 
-    QString partie_entiere;
-    QString partie_decimale;
-    partie_entiere = s.mid(0, place);
-    partie_decimale = s.mid(place+1);
+    string partie_entiere;
+    string partie_decimale;
+    partie_entiere = s.substr(0, place);
+    partie_decimale = s.substr(place+1);
 
 
-    int i;
+    unsigned int i;
     bool pentiere = true;
     bool pdecimale = true;
-    if((!partie_entiere.isEmpty()) && (!partie_decimale.isEmpty()))
+    if((!partie_entiere.empty()) && (!partie_decimale.empty()))
     {
         i = 0;
         if(partie_entiere[0]=='-'){i++;}
@@ -339,13 +416,13 @@ Forme_decimale *Analyseur::creerUneLitteraleReel(const QString &s){
         }
         if(pentiere == true && pdecimale == true){
 
-                float val =  s.toFloat();
+                float val = std::atof( s.c_str());
                 Forme_decimale *f_dec = new Forme_decimale(val);
                 return f_dec;
         }
     }
 
-    else if(partie_entiere.isEmpty() && !partie_decimale.isEmpty())
+    else if(partie_entiere.empty() && !partie_decimale.empty())
     {
 
         partie_entiere == "0";
@@ -358,15 +435,14 @@ Forme_decimale *Analyseur::creerUneLitteraleReel(const QString &s){
         }
         if(pdecimale == true){
 
-            QString reel = partie_entiere + "\." + partie_decimale;
-
-            float val =  s.toFloat();
+            string reel = partie_entiere + "\." + partie_decimale;
+            float val = atof( reel.c_str());
             Forme_decimale *f_dec = new Forme_decimale(val);
             return f_dec;
         }
 
     }
-    else if(partie_decimale.isEmpty() && !partie_entiere.isEmpty())
+    else if(partie_decimale.empty() && !partie_entiere.empty())
     {
 
         partie_decimale == "0";
@@ -378,27 +454,28 @@ Forme_decimale *Analyseur::creerUneLitteraleReel(const QString &s){
             pentiere = false;
         }
         if(pentiere == true){
-            QString reel = partie_entiere + "\." + partie_decimale;
-            float val =  s.toFloat();
+            string reel = partie_entiere + "\." + partie_decimale;
+            float val = atof( partie_entiere.c_str());
             Forme_decimale *f_dec = new Forme_decimale(val);
             return f_dec;
         }
 
-
     }
-}
 
-Forme_fraction *Analyseur::creerUneLitteraleEntiere(const QString& s){
-    int i = 0;
+
+
+}
+Forme_fraction *Analyseur::creerUneLitteraleEntiere(const string& s){
+	unsigned int i = 0;
 	bool entier = true;
 	if(s[0]=='-'){i++;}
-    for(i; i< s.size(); i++)
+	for(i; i< s.size(); i++)
     {
         if (s[i]>'9'||s[i]<'0') entier = false;
     }
 
     if (entier == true){
-            int entier = s.toInt();
+            int entier = atoi( s.c_str());
             Forme_fraction *f_ent = new Forme_fraction(entier);
             return f_ent;
     }
@@ -408,15 +485,15 @@ Forme_fraction *Analyseur::creerUneLitteraleEntiere(const QString& s){
 }
 
 
-Litteral_numerique *Analyseur::creerUneLitteraleComplexe(const QString& s){
-    QString *type = new QString[2];
+Litteral_numerique *Analyseur::creerUneLitteraleComplexe(const string& s){
+    string *type = new string[2];
     type = getReEtIm(s);
     int *slash = new int[2];
     int *point = new int[2];
-    slash[0] = type[0].indexOf("\/");
-    slash[1] = type[1].indexOf("\/");
-    point[0] = type[0].indexOf("\.");
-    point[1] = type[1].indexOf("\.");
+    slash[0] = type[0].find_first_of("\/");
+    slash[1] = type[1].find_first_of("\/");
+    point[0] = type[0].find_first_of("\.");
+    point[1] = type[1].find_first_of("\.");
     Reel **reel = new Reel*[2];
 
     for(unsigned int i=0; i<2; i++){
@@ -439,51 +516,50 @@ Litteral_numerique *Analyseur::creerUneLitteraleComplexe(const QString& s){
         return Lit;
 
 }
- int *Analyseur::getNumEtDen(const QString & fraction) {
-        int place;
-        place = fraction.indexOf("\/");
+ int *Analyseur::getNumEtDen(const string & fraction) {
+        size_t place;
+        place = fraction.find_first_of("\/");
         int *tab = new int[2];
         int numerateur;
         int denominateur;
 
         if(place==-1){
-            numerateur =fraction.toInt();
+            numerateur = atoi(fraction.c_str());
             denominateur = 1;
             tab[0] = numerateur;
             tab[1] = denominateur;
         }
         else{
 
-        QString num;
-        QString den;
-        num = fraction.mid(0, place);
-        den = fraction.mid(place+1);
-        numerateur = num.toInt();
-        denominateur = den.toInt();
+        string num;
+        string den;
+        num = fraction.substr(0, place);
+        den = fraction.substr(place+1);
+        numerateur = atoi(num.c_str());
+        denominateur = atoi(den.c_str());
 
         tab[0] = numerateur;
         tab[1] = denominateur;
         }
         return tab;
 }
-QString *Analyseur::getReEtIm(const QString & complexe) {
-        int place;
-        place = complexe.indexOf("\$");
-        QString pre;
-        QString pim;
-        pre = complexe.mid(0, place);
-        pim = complexe.mid(place+1);
+string *Analyseur::getReEtIm(const string & complexe) {
+        size_t place;
+        place = complexe.find_first_of("\$");
+        string pre;
+        string pim;
+        pre = complexe.substr(0, place);
+        pim = complexe.substr(place+1);
 
-        QString *tab = new QString[2];
+        string *tab = new string[2];
         tab[0] = pre;
         tab[1] = pim;
         return tab;
 }
+ConteneurOperande** Analyseur::interpreter(const string &commande) {
 
-ConteneurOperande** Analyseur::interpreter(const QString &commande) {
-
-    int i, occEsp =0 ;
-    char cEsp = ' ';
+    unsigned int i, occEsp =0, occProg = 0;
+    char cEsp =' ';
     char cExp ='\'';
     char cProg1 = '\[';
     char cProg2 = '\]';
@@ -496,34 +572,26 @@ ConteneurOperande** Analyseur::interpreter(const QString &commande) {
 
         if(commande[i]== cProg1 ) {prog++; programme = false;}
         else if(commande[i]== cProg2 && prog==0 ) programme = true;
+        else if(commande[i]== cExp && programme == true && expression == true) expression = false;
+        else if(commande[i]== cExp && programme == true && expression == false) expression = true;
 
-        if(commande[i]== cExp && expression == true) expression = false;
-        else if(commande[i]== cExp && expression == false) expression = true;
-
-        if(commande[i]==cEsp && expression == true && programme == true)
+        if(commande[i]==cEsp && (expression == true || programme == true))
         {
-        occEsp++;
+            occEsp++;
         }
 
     }
 
-
-
-    QString *tab = new QString[occEsp+1];
-
+    string *tab = new string[occEsp+1];
 
     unsigned int occtab=0;
-
+    //    unsigned int j;
     unsigned int k = 0;
 
     while(k<commande.size())
     {
         // Si c'est un espace
-        if(commande[k]==cEsp)
-        {
-            k++;
-
-        }
+        if(commande[k]==cEsp){k++;}
         //Si c'est un programme
         else if(commande[k]== cProg1 )
         {
@@ -544,7 +612,7 @@ ConteneurOperande** Analyseur::interpreter(const QString &commande) {
                     k++;
 
                 }
-                else if(commande[k]==cProg2&&fin>0){
+                else if(commande[k]==cProg2&&fin==0){
                     tab[occtab] = tab[occtab] + commande[k];
                     k++;
 
@@ -571,21 +639,19 @@ ConteneurOperande** Analyseur::interpreter(const QString &commande) {
                 tab[occtab] = tab[occtab] + commande[k];
                 k++;
 
-            } while(conditionFin <=1 && k<commande.size()-1);
+            } while(commande[k]!=cExp && conditionFin <=1 && k<commande.size());
             tab[occtab] = tab[occtab] + commande[k];
             k++;
 
-           occtab++;
+            occtab++;
         }
         //pour le reste
         else
         {
-            while (k< commande.size())
+            while (commande[k]!=cEsp&&k< commande.size())
             {
-
                 tab[occtab] = tab[occtab] + commande[k];
                 k++;
-
             }
             occtab++;
         }
@@ -593,9 +659,16 @@ ConteneurOperande** Analyseur::interpreter(const QString &commande) {
 
     }
 
-    ConteneurOperande **newtab = new ConteneurOperande*[occtab+1];
+    //cout << "Test :  \n";
+    /*
+    for(unsigned int t=0; t < occtab; t++){
 
-    //On a tab qui contient les Operande en QString maintenant nous allons Implementer le tableau d'operande.
+        cout<< "Operande " << t+1 << " = " << tab[t] << "\n";
+    } */
+
+    ConteneurOperande **newtab = new ConteneurOperande*[2*occtab+1];
+    //cout << "Nombre d'operande :" << occtab << "\n";
+    //On a tab qui contient les Operande en string maintenant nous allons Implementer le tableau d'operande.
 
     unsigned int numOp;
     int slash;
@@ -604,57 +677,53 @@ ConteneurOperande** Analyseur::interpreter(const QString &commande) {
     int quote;
     int crochet;
     int alphabet;
+    int numOp2 = 0;
     for(numOp=0; numOp < occtab; numOp++ ){
 
-
-        slash = tab[numOp].indexOf("\/");
-        point = tab[numOp].indexOf("\.");
-        dollar = tab[numOp].indexOf("\$");
-        quote = tab[numOp].indexOf("\'");
-        crochet = tab[numOp].indexOf("\[");
+        slash = tab[numOp].find_first_of("\/");
+        point = tab[numOp].find_first_of("\.");
+        dollar = tab[numOp].find_first_of("\$");
+        quote = tab[numOp].find_first_of("\'");
+        crochet = tab[numOp].find_first_of("\[");
         alphabet = 26 + 25;
         for(char i='A'; i <= 'Z'; i++)
-            alphabet += tab[numOp].indexOf(i);
+            alphabet += tab[numOp].find_first_of(i);
         for(char i='a'; i <= 'z'; i++)
-            alphabet += tab[numOp].indexOf(i);
+            alphabet += tab[numOp].find_first_of(i);
         Operateur* Op = creerOperateur(tab[numOp]);
-        if(Op)
+        if(Op != 0)
         {
-
                 ConteneurOperande *oP = new ConteneurOperande(*Op);
-                newtab[numOp] = oP;
+                newtab[numOp2] = oP;
         }
         else
         {
             //Si c'est un entier
             if(alphabet<0&&slash ==-1&&point==-1&&dollar==-1&&quote==-1&&crochet==-1)
             {
-
                 Forme_fraction *frac1 = creerUneLitteraleEntiere(tab[numOp]);
                 Forme_fraction *frac2 = creerUneLitteraleEntiere("0");
                 Litteral_numerique *Lit = new Litteral_numerique(*frac1, *frac2);
                 ConteneurOperande *cL = new ConteneurOperande(*Lit);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
 
             }
             //SI c'est un rationelle
             else if(slash !=-1&&point==-1&&dollar==-1&&quote==-1&&crochet==-1){
-
                 Forme_fraction *reel1 = creerUneLitteraleRationelle(tab[numOp]);
                 Forme_fraction *reel2 = creerUneLitteraleRationelle("0/1");
                 Litteral_numerique *Lit = new Litteral_numerique(*reel1, *reel2);
                 ConteneurOperande *cL = new ConteneurOperande(*Lit);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
 
             }
             //Si c'est un réel
             else if(point!=-1&&slash ==-1&&dollar==-1&&quote==-1&&crochet==-1){
-
                 Forme_decimale *dec1 = creerUneLitteraleReel(tab[numOp]);
                 Forme_decimale *dec2 = creerUneLitteraleReel("0.0");
                 Litteral_numerique *Lit = new Litteral_numerique(*dec1, *dec2);
                 ConteneurOperande *cL= new ConteneurOperande(*Lit);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
 
             }
             //SI c'est un Complexe
@@ -664,24 +733,24 @@ ConteneurOperande** Analyseur::interpreter(const QString &commande) {
                 Litteral_numerique *Lit = creerUneLitteraleComplexe(tab[numOp]);
 
                 ConteneurOperande *cL= new ConteneurOperande(*Lit);
-                newtab[numOp] = cL;
-            }
-            //Si c'est une Expression
-            else if(quote != -1 && crochet == -1){
-                tab[numOp].remove(0,1);
-                tab[numOp].remove(tab[numOp].size() - 1);
-                Litteral_expression *exp = new Litteral_expression(tab[numOp]);
-                ConteneurOperande *cL = new ConteneurOperande(*exp);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
             }
             // SI c'est un programme
-            else if(quote == -1 && crochet != -1){
+            else if(crochet != -1){
 
-                tab[numOp].remove(0,1);
-                tab[numOp].remove(tab[numOp].size() - 2);
+                tab[numOp].erase(0,1);
+                tab[numOp].erase(tab[numOp].size() - 2);
                 Litteral_programme *prog = new Litteral_programme(tab[numOp]);
                 ConteneurOperande *cL = new ConteneurOperande(*prog);
-                newtab[numOp] = cL;
+                newtab[numOp2] = cL;
+            }
+            //Si c'est une Expression
+            else if(quote != -1){
+                tab[numOp].erase(0,1);
+                tab[numOp].erase(tab[numOp].size() - 1);
+                Litteral_expression *exp = new Litteral_expression(tab[numOp]);
+                ConteneurOperande *cL = new ConteneurOperande(*exp);
+                newtab[numOp2] = cL;
             }
             else
             {
@@ -690,25 +759,26 @@ ConteneurOperande** Analyseur::interpreter(const QString &commande) {
                 {
                     Litteral_expression *exp = new Litteral_expression(tab[numOp]);
                     ConteneurOperande *cL = new ConteneurOperande(*exp);
-                    newtab[numOp] = cL;
+                    newtab[numOp2] = cL;
                 }
-                else if(existenceAtome == prog)
+                else if(existenceAtome == progg)
                 {
-                    ConteneurOperande** ops = atomes.interpreter(tab[numOp]);
-                    newtab[numOp] = ops[0];
-//                    numOp++;
-  //                  newtab[numOp] = ops[1];
+                    ConteneurOperande* ops = atomes.interpreter(tab[numOp]);
+                    newtab[numOp2] = ops;
+                    numOp2++;
+                    newtab[numOp2] =  new ConteneurOperande(* new Eval());
                 }
                 else
                 {
-                    ConteneurOperande** ops = atomes.interpreter(tab[numOp]);
-                    newtab[numOp] = ops[0];
+                    ConteneurOperande* ops = atomes.interpreter(tab[numOp]);
+                    newtab[numOp2] = ops;
                 }
             }
 //      throw ExceptionLitteral("Syntaxe invalide");
 
         }
+            numOp2++;
     }
-        newtab[occtab] = 0;
+        newtab[numOp2] = 0;
         return newtab;
     }
